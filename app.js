@@ -184,12 +184,24 @@ async function fetchGnssDay(site, date) {
   });
 
   if (!proxyUrl) {
-    // Si no hay Cloudflare Worker configurado, usamos los datos de muestra locales
+    // Si no hay Cloudflare Worker configurado, usamos los datos de muestra locales adaptados a la fecha
     try {
       const sampleResponse = await fetch("./data/cuajone_sample.json", { cache: "no-store" });
       if (sampleResponse.ok) {
+        const rawSample = await sampleResponse.json();
+        const baseTime = Date.parse("2026-01-01T05:00:00Z");
+        const targetStartMs = Date.parse(utcStartOfLocalDate(date, site.timezone) + "Z");
+        const adapted = rawSample.map((item) => {
+          if (!item || !item.timeOfEstimation) return item;
+          const offsetMs = Date.parse(item.timeOfEstimation + "Z") - baseTime;
+          const adjustedIso = new Date(targetStartMs + offsetMs).toISOString().replace("Z", "");
+          return {
+            ...item,
+            timeOfEstimation: adjustedIso,
+          };
+        });
         showNotice("Mostrando datos GNSS de muestra. Kp de NOAA está 100% en vivo. Para TEC y Centelleo en vivo en GitHub Pages, configurá tu Worker en el botón ⚙️ PROXY.");
-        return await sampleResponse.json();
+        return adapted;
       }
     } catch { /* continuar si no hay archivo de muestra */ }
     throw new Error("Proxy Cloudflare no configurado. Hacé clic en ⚙️ arriba para ingresar tu Worker.");
