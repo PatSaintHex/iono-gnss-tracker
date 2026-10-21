@@ -3,7 +3,7 @@ import { clearReports, deleteSiteReports, listAllReports, listReports, saveRepor
 const SITE_KEY = "geoionosfera-sites-v1";
 const SELECTED_SITE_KEY = "geoionosfera-selected-site-v1";
 const WELCOME_DISMISSED_KEY = "geoionosfera-welcome-dismissed-v1";
-const PROXY_KEY = "geoionosfera-cloudflare-proxy-v1";
+const GNSS_PROXY_URL = "/api/ionoindex";
 const DEFAULT_SITES = [{ id: "cuajone", name: "Cuajone", lat: -17.0315, lon: -70.7263, timezone: "America/Lima" }];
 const NOAA_URL = "https://services.swpc.noaa.gov/text/3-day-forecast.txt";
 const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15-18UT", "18-21UT", "21-00UT"];
@@ -11,7 +11,6 @@ const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15
 const elements = Object.fromEntries([
   "connection-status", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
   "help-button", "welcome-dialog", "close-welcome", "dismiss-welcome", "remember-welcome",
-  "proxy-button", "proxy-dialog", "close-proxy", "proxy-url-input", "test-proxy-button", "save-proxy-button", "proxy-status-msg",
   "report-period", "updated-at", "freshness", "notice", "summary-content", "ionosphere-chart", "chart-empty",
   "kp-body", "kp-date-0", "kp-date-1", "kp-date-2", "storm-badge", "scint-events", "storm-events",
   "history-count", "history-list", "sites-dialog", "site-form", "site-list", "form-legend", "edit-site-id",
@@ -173,47 +172,13 @@ async function fetchNoaa() {
   return parseNoaa(await response.text());
 }
 
-function getProxyUrl() {
-  return (localStorage.getItem(PROXY_KEY) || "").trim();
-}
-
 async function fetchGnssDay(site, date) {
-  const proxyUrl = getProxyUrl();
   const parameters = new URLSearchParams({
     lat: String(site.lat), lon: String(site.lon), start: utcStartOfLocalDate(date, site.timezone), hours: "24", interval: "600"
   });
-
-  if (!proxyUrl) {
-    // Si no hay Cloudflare Worker configurado, usamos los datos de muestra locales adaptados a la fecha
-    try {
-      const sampleUrl = new URL("./data/cuajone_sample.json", import.meta.url).href;
-      const sampleResponse = await fetch(sampleUrl, { cache: "no-store" });
-      if (sampleResponse.ok) {
-        const rawSample = await sampleResponse.json();
-        const baseTime = Date.parse("2026-01-01T05:00:00Z");
-        const targetStartMs = Date.parse(utcStartOfLocalDate(date, site.timezone) + "Z");
-        const adapted = rawSample.map((item) => {
-          if (!item || !item.timeOfEstimation) return item;
-          const offsetMs = Date.parse(item.timeOfEstimation + "Z") - baseTime;
-          const adjustedIso = new Date(targetStartMs + offsetMs).toISOString().replace("Z", "");
-          return {
-            ...item,
-            timeOfEstimation: adjustedIso,
-          };
-        });
-        showNotice("Mostrando datos GNSS de muestra. Kp de NOAA está 100% en vivo. Para TEC y Centelleo en vivo en GitHub Pages, configurá tu Worker en el botón ⚙️ PROXY.");
-        return adapted;
-      }
-    } catch { /* continuar si no hay archivo de muestra */ }
-    throw new Error("Proxy Cloudflare no configurado. Hacé clic en ⚙️ arriba para ingresar tu Worker.");
-  }
-
-  // Si hay proxy configurado, llamamos al Worker de Cloudflare
-  const cleanProxy = proxyUrl.replace(/\/+$/, "");
-  const targetUrl = cleanProxy.includes("?") ? `${cleanProxy}&${parameters}` : `${cleanProxy}?${parameters}`;
-  const response = await fetch(targetUrl, { cache: "no-store" });
+  const response = await fetch(`${GNSS_PROXY_URL}?${parameters}`, { cache: "no-store" });
   const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || `Proxy respondió HTTP ${response.status}.`);
+  if (!response.ok) throw new Error(payload.error || `Servicio GNSS respondió HTTP ${response.status}.`);
   if (!Array.isArray(payload)) throw new Error("GNSSPlanning devolvió un formato no esperado.");
   return payload;
 }
@@ -830,72 +795,6 @@ function wireEvents() {
   elements["welcome-dialog"]?.addEventListener("click", (event) => {
     if (event.target === elements["welcome-dialog"]) closeWelcome();
   });
-
-  // Manejo de Modal Proxy Cloudflare
-  if (elements["proxy-button"] && elements["proxy-dialog"]) {
-    elements["proxy-button"].addEventListener("click", () => {
-      if (elements["proxy-url-input"]) {
-        elements["proxy-url-input"].value = getProxyUrl();
-      }
-      if (elements["proxy-status-msg"]) {
-        elements["proxy-status-msg"].textContent = "";
-      }
-      elements["proxy-dialog"].showModal();
-    });
-
-    elements["close-proxy"]?.addEventListener("click", () => {
-      elements["proxy-dialog"].close();
-    });
-
-    elements["save-proxy-button"]?.addEventListener("click", () => {
-      const url = (elements["proxy-url-input"]?.value || "").trim();
-      if (url) {
-        localStorage.setItem(PROXY_KEY, url);
-        if (elements["proxy-status-msg"]) {
-          elements["proxy-status-msg"].textContent = "✅ Proxy guardado correctamente.";
-          elements["proxy-status-msg"].style.color = "#197a8c";
-        }
-      } else {
-        localStorage.removeItem(PROXY_KEY);
-        if (elements["proxy-status-msg"]) {
-          elements["proxy-status-msg"].textContent = "ℹ️ Proxy borrado. Se usarán datos de muestra.";
-          elements["proxy-status-msg"].style.color = "#748589";
-        }
-      }
-      setTimeout(() => {
-        elements["proxy-dialog"].close();
-        refreshReport();
-      }, 600);
-    });
-
-    elements["test-proxy-button"]?.addEventListener("click", async () => {
-      const url = (elements["proxy-url-input"]?.value || "").trim().replace(/\/+$/, "");
-      if (!url) {
-        if (elements["proxy-status-msg"]) {
-          elements["proxy-status-msg"].textContent = "⚠️ Ingresá una URL primero.";
-          elements["proxy-status-msg"].style.color = "#c0392b";
-        }
-        return;
-      }
-      if (elements["proxy-status-msg"]) {
-        elements["proxy-status-msg"].textContent = "Probando conexión con el Worker...";
-        elements["proxy-status-msg"].style.color = "#748589";
-      }
-      try {
-        const testRes = await fetch(`${url}/health`, { cache: "no-store" });
-        if (testRes.ok) {
-          elements["proxy-status-msg"].textContent = "✅ ¡Conexión exitosa con el Worker!";
-          elements["proxy-status-msg"].style.color = "#27ae60";
-        } else {
-          elements["proxy-status-msg"].textContent = `⚠️ El Worker respondió HTTP ${testRes.status}.`;
-          elements["proxy-status-msg"].style.color = "#e67e22";
-        }
-      } catch (err) {
-        elements["proxy-status-msg"].textContent = `❌ Error al conectar: ${err.message}`;
-        elements["proxy-status-msg"].style.color = "#c0392b";
-      }
-    });
-  }
 }
 
 function setupInstall() {
@@ -932,49 +831,5 @@ async function initialize() {
 
   refreshReport();
 }
-
-window.debugGeo = {
-  getReport: () => activeReport,
-  async diagnose() {
-    console.log("=== DIAGNÓSTICO GEOIONOSFERA ===");
-    console.log("URL:", window.location.href);
-    console.log("import.meta.url:", import.meta.url);
-    const sampleUrl = new URL("./data/cuajone_sample.json", import.meta.url).href;
-    console.log("URL muestra:", sampleUrl);
-    try {
-      const res = await fetch(sampleUrl);
-      console.log("Fetch muestra HTTP:", res.status, res.ok ? "✅ OK" : "❌ FALLÓ");
-      if (res.ok) {
-        const d = await res.json();
-        console.log("Muestras cargadas:", d.length);
-      }
-    } catch (e) {
-      console.error("Error al descargar sample:", e);
-    }
-    console.log("Reporte activo:", activeReport);
-    if (activeReport) {
-      const summary = summarize(activeReport);
-      console.log("Puntos GNSS calculados para el gráfico:", summary.gnssRows.length);
-      console.log("Columnas Kp:", activeReport.noaa?.rows?.length);
-    }
-    console.log("Forzando actualización limpia...");
-    await refreshReport();
-    console.log("=== DIAGNÓSTICO FINALIZADO ===");
-  },
-  async resetAll() {
-    console.log("Limpiando cachés y base de datos local...");
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      for (const k of keys) await caches.delete(k);
-    }
-    if ("serviceWorker" in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) await r.unregister();
-    }
-    await clearReports();
-    localStorage.removeItem(PROXY_KEY);
-    window.location.reload();
-  }
-};
 
 initialize();

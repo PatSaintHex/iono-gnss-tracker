@@ -1,64 +1,25 @@
-# GeoIonosfera — Versión GitHub Pages (100% Serverless / Cliente)
+# GeoIonosfera — Monitor de Clima Espacial y GNSS
 
-Esta carpeta (`WEB_github`) es una **versión independiente** diseñada específicamente para publicarse en **GitHub Pages** (o cualquier hosting estático como Netlify, Vercel o Cloudflare Pages) sin necesidad de mantener un servidor Python encendido en tu computadora.
-
-> **Importante:** Tu proyecto local original en la carpeta [`WEB/`](../WEB/) se mantiene **100% intacto y funcional**.
+Monitor web en tiempo real para observación geomagnética (NOAA SWPC) y comportamiento ionosférico TEC / Centelleo (Trimble GNSSPlanning) orientado a posicionamiento satelital de alta precisión (RTK).
 
 ---
 
-## 1. ¿Cómo funciona la arquitectura en GitHub Pages?
+## 🚀 Despliegue en Vercel (100% Automático y En Vivo)
 
-```
-┌────────────────────────────────────────────────────────┐
-│             Navegador del Usuario (Cliente)            │
-│  (https://tu-usuario.github.io/tu-repo/WEB_github/)   │
-└───────────────┬────────────────────────┬───────────────┘
-                │                        │
-       Petición Directa (CORS OK)        │  Petición GNSS (Requiere Referer)
-                ▼                        ▼
-┌───────────────────────────────┐ ┌─────────────────────────────────────┐
-│  NOAA Space Weather (SWPC)   │ │  Cloudflare Worker Gratuito         │
-│  (Pronóstico Kp y Alertas G)  │ │  (cloudflare-worker.js)             │
-│  100% En Vivo sin Proxy       │ └──────────────────┬──────────────────┘
-└───────────────────────────────┘                    │ Inyecta cabeceras
-                                                     ▼
-                                  ┌─────────────────────────────────────┐
-                                  │  Trimble GNSSPlanning API           │
-                                  │  (TEC diurno y Centelleo F-layer)   │
-                                  └─────────────────────────────────────┘
-```
+Este proyecto está optimizado con una **Serverless Function en `/api/ionoindex.js`** que resuelve el enlace directo con Trimble en la nube sin necesidad de configurar proxies ni servidores dedicados.
 
-1. **Pronóstico Kp y Alertas NOAA (G1 a G5):**
-   - Se consulta **directamente desde el navegador** a los servidores de NOAA (`services.swpc.noaa.gov`).
-   - NOAA incluye por defecto la cabecera `Access-Control-Allow-Origin: *`, por lo que **no requiere ningún backend ni proxy**.
-2. **TEC y Centelleo (Trimble GNSSPlanning):**
-   - Trimble no permite CORS abierto y exige la cabecera `Referer: https://gnssplanning.com/`. Como los navegadores bloquean estas peticiones por seguridad, se utiliza un micro-proxy serverless en **Cloudflare Workers** (gratuito).
-   - **Modo Demostración / Offline:** Si no configuras el worker, la web carga automáticamente un dataset de muestra para Cuajone, permitiendo navegar y utilizar la herramienta de inmediato.
+### Pasos para desplegar:
+1. Inicia sesión en **[vercel.com](https://vercel.com/)** con tu cuenta de GitHub.
+2. Haz clic en **"Add New..."** -> **"Project"**.
+3. Selecciona el repositorio **`iono-gnss-tracker`**.
+4. Haz clic en **"Deploy"** (no requiere configurar variables ni comandos de build).
+5. En 30 segundos obtendrás tu URL pública HTTPS (ejemplo: `https://iono-gnss-tracker.vercel.app`).
 
 ---
 
-## 2. Pasos para Publicar en GitHub Pages
+## 🛰️ Arquitectura
 
-1. **Subir los cambios a GitHub:**
-   Asegúrate de que la carpeta `WEB_github` esté subida a tu repositorio de GitHub.
-2. **Activar GitHub Pages:**
-   - En tu repositorio de GitHub, ve a **Settings** -> **Pages**.
-   - En **Build and deployment** > **Source**, selecciona **Deploy from a branch**.
-   - Elige tu rama (`main` o `master`) y la carpeta `/` (root) o `/docs` (si copias el contenido de `WEB_github` a la raíz de tu rama `gh-pages` o a `docs/`).
-   - Guarda los cambios. En 1 minuto GitHub te dará tu enlace público: `https://tu-usuario.github.io/...`.
-
----
-
-## 3. Conectar TEC y Centelleo en Vivo (Cloudflare Worker — 2 Minutos)
-
-El archivo [`cloudflare-worker.js`](./cloudflare-worker.js) contiene el código necesario para intermediar las consultas a Trimble sin costo alguno (Cloudflare ofrece 100,000 peticiones gratis al día):
-
-1. Ingresa a [dash.cloudflare.com](https://dash.cloudflare.com/) y crea una cuenta gratuita.
-2. En el panel izquierdo, ve a **Workers & Pages** -> **Create Application** -> **Create Worker**.
-3. Asígnale el nombre `geo-proxy` y pulsa **Deploy**.
-4. Haz clic en **Edit Code**, borra el código por defecto y **pega todo el contenido de [`cloudflare-worker.js`](./cloudflare-worker.js)**.
-5. Pulsa **Deploy** (arriba a la derecha).
-6. Copia tu URL pública generada (ejemplo: `https://geo-proxy.tunombre.workers.dev`).
-7. Abre tu web en GitHub Pages, haz clic en el icono **⚙️ PROXY** de la barra superior, pega la URL y dale a **Guardar proxy**.
-
-¡Listo! A partir de ese momento, tu web en GitHub Pages consultará TEC, Centelleo y Kp en tiempo real para cualquier coordenada del mundo.
+- **Frontend:** HTML5, CSS3 responsive, Vanilla JavaScript (ES Modules) y Canvas 2D de alto rendimiento.
+- **Backend Serverless:** `/api/ionoindex.js` en Vercel (Node.js Edge / Serverless) que consulta la API de Trimble GNSSPlanning inyectando las cabeceras de servidor requeridas.
+- **NOAA SWPC:** Consulta directa desde el cliente al pronóstico de 3 días de tormentas geomagnéticas (escalas G1 a G5).
+- **Offline / PWA:** Almacenamiento local de consultas históricas en IndexedDB y Service Worker.
