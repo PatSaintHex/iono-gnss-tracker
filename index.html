@@ -54,7 +54,7 @@
       <!-- Columna Izquierda: Mapa Interactivo y Buscador Gratuito OSM Nominatim -->
       <div class="map-column">
         <div class="map-search-row">
-          <input id="map-search-input" type="search" placeholder="Buscar mina o ciudad (ej. Quebrada Blanca, Yanacocha, Moquegua)..." aria-label="Buscar lugar en mapa">
+          <input id="map-search-input" type="search" placeholder="Buscar faena o ciudad (ej. San Cristóbal, Carajás, Quebrada Blanca, Cerrejón)..." aria-label="Buscar lugar en mapa">
           <button id="map-search-btn" class="primary-button compact-btn" type="button">Buscar</button>
         </div>
         <div id="map-search-results" class="map-search-results" hidden></div>
@@ -80,11 +80,16 @@
                 <select id="site-country" name="country">
                   <option value="PE">🇵🇪 Perú</option>
                   <option value="CL">🇨🇱 Chile</option>
+                  <option value="BO">🇧🇴 Bolivia</option>
+                  <option value="BR">🇧🇷 Brasil</option>
+                  <option value="CO">🇨🇴 Colombia</option>
+                  <option value="EC">🇪🇨 Ecuador</option>
+                  <option value="AR">🇦🇷 Argentina</option>
                   <option value="OTRO">🌐 Otro</option>
                 </select>
               </label>
               <label>Nombre de la Mina
-                <input id="site-name" name="name" required maxlength="60" placeholder="Ej. Minera Chinalco">
+                <input id="site-name" name="name" required maxlength="60" placeholder="Ej. Minera San Cristóbal">
               </label>
             </div>
 
@@ -103,8 +108,14 @@
             <datalist id="timezone-options">
               <option value="America/Lima">
               <option value="America/Santiago">
+              <option value="America/La_Paz">
+              <option value="America/Sao_Paulo">
+              <option value="America/Belem">
               <option value="America/Bogota">
-              <option value="America/Mexico_City">
+              <option value="America/Guayaquil">
+              <option value="America/Argentina/Buenos_Aires">
+              <option value="America/Argentina/San_Juan">
+              <option value="America/Argentina/Catamarca">
               <option value="UTC">
             </datalist>
 
