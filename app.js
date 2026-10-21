@@ -1,10 +1,30 @@
 import { clearReports, deleteSiteReports, listAllReports, listReports, saveReport } from "./storage.js";
 
-const SITE_KEY = "geoionosfera-sites-v1";
-const SELECTED_SITE_KEY = "geoionosfera-selected-site-v1";
+const SITE_KEY = "geoionosfera-sites-v2";
+const SELECTED_SITE_KEY = "geoionosfera-selected-site-v2";
 const WELCOME_DISMISSED_KEY = "geoionosfera-welcome-dismissed-v1";
 const GNSS_PROXY_URL = "/api/ionoindex";
-const DEFAULT_SITES = [{ id: "cuajone", name: "Cuajone", lat: -17.0315, lon: -70.7263, timezone: "America/Lima" }];
+const DEFAULT_SITES = [
+  // 🇵🇪 Perú (Región Sur y Central)
+  { id: "cuajone", name: "Cuajone (Moquegua)", country: "PE", lat: -17.0315, lon: -70.7263, timezone: "America/Lima" },
+  { id: "toquepala", name: "Toquepala (Tacna)", country: "PE", lat: -17.2519, lon: -70.6714, timezone: "America/Lima" },
+  { id: "quellaveco", name: "Quellaveco (Moquegua)", country: "PE", lat: -17.1008, lon: -70.6186, timezone: "America/Lima" },
+  { id: "cerro-verde", name: "Cerro Verde (Arequipa)", country: "PE", lat: -16.5367, lon: -71.6169, timezone: "America/Lima" },
+  { id: "las-bambas", name: "Las Bambas (Apurímac)", country: "PE", lat: -14.0975, lon: -72.3197, timezone: "America/Lima" },
+  { id: "antapaccay", name: "Antapaccay (Cusco)", country: "PE", lat: -14.9292, lon: -71.3061, timezone: "America/Lima" },
+  { id: "constancia", name: "Constancia (Cusco)", country: "PE", lat: -14.4758, lon: -71.7761, timezone: "America/Lima" },
+  { id: "toromocho", name: "Toromocho (Junín)", country: "PE", lat: -11.6214, lon: -76.1408, timezone: "America/Lima" },
+  { id: "antamina", name: "Antamina (Áncash)", country: "PE", lat: -9.5344, lon: -77.0514, timezone: "America/Lima" },
+
+  // 🇨🇱 Chile (Región Norte y Central)
+  { id: "escondida", name: "Minera Escondida (Antofagasta)", country: "CL", lat: -24.2678, lon: -69.0717, timezone: "America/Santiago" },
+  { id: "collahuasi", name: "Minera Collahuasi (Tarapacá)", country: "CL", lat: -20.9633, lon: -68.7061, timezone: "America/Santiago" },
+  { id: "chuquicamata", name: "Chuquicamata (Antofagasta)", country: "CL", lat: -22.2961, lon: -68.9022, timezone: "America/Santiago" },
+  { id: "spence", name: "Minera Spence (Antofagasta)", country: "CL", lat: -22.8089, lon: -69.2689, timezone: "America/Santiago" },
+  { id: "centinela", name: "Minera Centinela (Antofagasta)", country: "CL", lat: -23.0117, lon: -69.1711, timezone: "America/Santiago" },
+  { id: "pelambres", name: "Los Pelambres (Coquimbo)", country: "CL", lat: -31.7161, lon: -70.4950, timezone: "America/Santiago" },
+  { id: "teniente", name: "El Teniente (O'Higgins)", country: "CL", lat: -34.0911, lon: -70.4700, timezone: "America/Santiago" }
+];
 const NOAA_URL = "https://services.swpc.noaa.gov/text/3-day-forecast.txt";
 const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15-18UT", "18-21UT", "21-00UT"];
 
@@ -14,8 +34,8 @@ const elements = Object.fromEntries([
   "report-period", "updated-at", "freshness", "notice", "summary-content", "ionosphere-chart", "chart-empty",
   "kp-body", "kp-date-0", "kp-date-1", "kp-date-2", "storm-badge", "scint-events", "storm-events",
   "history-count", "history-list", "sites-dialog", "site-form", "site-list", "form-legend", "edit-site-id",
-  "site-name", "site-lat", "site-lon", "site-timezone", "cancel-edit", "close-sites", "export-data",
-  "clear-history"
+  "site-country", "site-name", "site-lat", "site-lon", "site-timezone", "cancel-edit", "close-sites", "export-data",
+  "clear-history", "catalog-count", "sites-map", "map-search-input", "map-search-btn", "map-search-results"
 ].map((id) => [id, document.getElementById(id)]));
 
 let sites = loadSites();
@@ -23,6 +43,17 @@ let selectedSiteId = localStorage.getItem(SELECTED_SITE_KEY) || sites[0].id;
 let activeReport = null;
 let installPrompt = null;
 let refreshInProgress = false;
+
+let leafletMap = null;
+let siteMarkersGroup = null;
+let clickPinMarker = null;
+
+function normalizeCountry(site) {
+  if (site.country) return site.country;
+  if (site.timezone === "America/Santiago" || site.lat < -18.3) return "CL";
+  if (site.timezone === "America/Lima") return "PE";
+  return "OTRO";
+}
 
 function loadSites() {
   try {
@@ -112,11 +143,28 @@ function setConnection(state, label) {
 
 function renderSites() {
   if (!sites.some((site) => site.id === selectedSiteId)) selectedSiteId = sites[0].id;
-  elements["site-select"].innerHTML = sites.map((site) => `<option value="${escapeHtml(site.id)}">${escapeHtml(site.name)}</option>`).join("");
+
+  const peSites = sites.filter((s) => (s.country || normalizeCountry(s)) === "PE");
+  const clSites = sites.filter((s) => (s.country || normalizeCountry(s)) === "CL");
+  const otherSites = sites.filter((s) => !["PE", "CL"].includes(s.country || normalizeCountry(s)));
+
+  let html = "";
+  if (peSites.length) {
+    html += `<optgroup label="🇵🇪 Perú">` + peSites.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join("") + `</optgroup>`;
+  }
+  if (clSites.length) {
+    html += `<optgroup label="🇨🇱 Chile">` + clSites.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join("") + `</optgroup>`;
+  }
+  if (otherSites.length) {
+    html += `<optgroup label="🌐 Otras Operaciones">` + otherSites.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join("") + `</optgroup>`;
+  }
+
+  elements["site-select"].innerHTML = html;
   elements["site-select"].value = selectedSiteId;
   localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
   const site = getSelectedSite();
-  elements["site-coordinates"].textContent = `${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
+  const flag = (site.country || normalizeCountry(site)) === "CL" ? "🇨🇱 " : (site.country || normalizeCountry(site)) === "PE" ? "🇵🇪 " : "";
+  elements["site-coordinates"].textContent = `${flag}${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
 }
 
 function parseNoaa(text) {
@@ -698,8 +746,194 @@ async function renderHistory(siteId) {
   });
 }
 
+function initOrUpdateMap() {
+  if (typeof L === "undefined") return;
+  if (!elements["sites-map"]) return;
+
+  if (!leafletMap) {
+    // Initial Andean mining focus: Southern Peru & Northern Chile
+    leafletMap = L.map(elements["sites-map"], {
+      center: [-19.5, -70.5],
+      zoom: 5,
+      zoomControl: true
+    });
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+    }).addTo(leafletMap);
+
+    siteMarkersGroup = L.layerGroup().addTo(leafletMap);
+
+    // Map click handler to place custom pin and fill form
+    leafletMap.on("click", (e) => {
+      setClickPin(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
+  // Update site markers
+  if (siteMarkersGroup) {
+    siteMarkersGroup.clearLayers();
+    sites.forEach((site) => {
+      const countryCode = site.country || normalizeCountry(site);
+      const flag = countryCode === "CL" ? "🇨🇱" : countryCode === "PE" ? "🇵🇪" : "📍";
+      
+      const marker = L.marker([site.lat, site.lon], {
+        title: site.name
+      });
+
+      const isCurrent = site.id === selectedSiteId;
+      const popupHtml = `
+        <div>
+          <strong>${flag} ${escapeHtml(site.name)}</strong>
+          <small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small>
+          <button type="button" class="map-popup-btn" onclick="window.selectSiteFromMap('${escapeHtml(site.id)}')">
+            ${isCurrent ? "✓ Operación activa" : "Seleccionar y Monitorear"}
+          </button>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml);
+      siteMarkersGroup.addLayer(marker);
+    });
+  }
+
+  // Focus on currently selected site if available
+  const active = getSelectedSite();
+  if (active && leafletMap) {
+    leafletMap.setView([active.lat, active.lon], Math.max(leafletMap.getZoom(), 6));
+  }
+
+  setTimeout(() => {
+    if (leafletMap) leafletMap.invalidateSize();
+  }, 180);
+}
+
+function setClickPin(lat, lon, zoomTo = false) {
+  const roundedLat = Number(lat.toFixed(4));
+  const roundedLon = Number(lon.toFixed(4));
+
+  elements["site-lat"].value = roundedLat;
+  elements["site-lon"].value = roundedLon;
+
+  // Infer country & timezone if adding a new site
+  if (!elements["edit-site-id"].value) {
+    if (roundedLat < -18.3 || elements["site-country"].value === "CL") {
+      elements["site-country"].value = "CL";
+      elements["site-timezone"].value = "America/Santiago";
+    } else {
+      elements["site-country"].value = "PE";
+      elements["site-timezone"].value = "America/Lima";
+    }
+  }
+
+  if (typeof L === "undefined" || !leafletMap) return;
+
+  if (!clickPinMarker) {
+    clickPinMarker = L.marker([lat, lon], {
+      draggable: true
+    }).addTo(leafletMap);
+
+    clickPinMarker.on("dragend", (e) => {
+      const pos = e.target.getLatLng();
+      setClickPin(pos.lat, pos.lng);
+    });
+  } else {
+    clickPinMarker.setLatLng([lat, lon]);
+  }
+
+  clickPinMarker.bindPopup(`<b>Pin seleccionado</b><br>${roundedLat}, ${roundedLon}`).openPopup();
+
+  if (zoomTo) {
+    leafletMap.setView([lat, lon], 9);
+  }
+}
+
+// Global function callable from Leaflet popup buttons
+window.selectSiteFromMap = function(siteId) {
+  selectedSiteId = siteId;
+  renderSites();
+  renderHistory(selectedSiteId);
+  elements["sites-dialog"].close();
+  refreshReport();
+};
+
+async function searchLocation(query) {
+  const trimmed = query.trim();
+  if (!trimmed) return;
+  const resultsBox = elements["map-search-results"];
+  resultsBox.hidden = false;
+  resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #555;">Buscando en OpenStreetMap…</div>';
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&countrycodes=pe,cl&limit=5`;
+    const res = await fetch(url, {
+      headers: { "Accept-Language": "es" }
+    });
+    if (!res.ok) throw new Error("Error en servicio de mapas");
+    const data = await res.json();
+    if (!data.length) {
+      resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #888;">No se encontraron resultados para esta búsqueda.</div>';
+      return;
+    }
+
+    resultsBox.innerHTML = data.map((item, idx) => {
+      const displayName = escapeHtml(item.display_name);
+      return `<button type="button" class="search-result-item" data-idx="${idx}">${displayName}</button>`;
+    }).join("");
+
+    resultsBox.querySelectorAll(".search-result-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = data[Number(btn.dataset.idx)];
+        if (!item) return;
+        const lat = parseFloat(item.lat);
+        const lon = parseFloat(item.lon);
+        elements["site-name"].value = item.name || item.display_name.split(",")[0];
+        setClickPin(lat, lon, true);
+        resultsBox.hidden = true;
+      });
+    });
+  } catch {
+    resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #a34134;">No se pudo conectar con el buscador geográfico.</div>';
+  }
+}
+
 function renderSiteList() {
-  elements["site-list"].innerHTML = sites.map((site) => `<div class="site-row"><div><strong>${escapeHtml(site.name)}</strong><small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small></div><div class="site-row-actions"><button type="button" data-edit="${escapeHtml(site.id)}">Editar</button><button type="button" data-delete="${escapeHtml(site.id)}">Eliminar</button></div></div>`).join("");
+  if (elements["catalog-count"]) elements["catalog-count"].textContent = String(sites.length);
+  elements["site-list"].innerHTML = sites.map((site) => {
+    const country = site.country || normalizeCountry(site);
+    const flag = country === "CL" ? "🇨🇱" : country === "PE" ? "🇵🇪" : "🌐";
+    return `
+      <div class="site-row">
+        <div>
+          <strong><span class="site-flag">${flag}</span> ${escapeHtml(site.name)}</strong>
+          <small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small>
+        </div>
+        <div class="site-row-actions">
+          <button type="button" data-locate="${escapeHtml(site.id)}" title="Ver en el mapa">Ubicar</button>
+          <button type="button" data-edit="${escapeHtml(site.id)}">Editar</button>
+          <button type="button" data-delete="${escapeHtml(site.id)}">Eliminar</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  elements["site-list"].querySelectorAll("[data-locate]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const s = sites.find((item) => item.id === button.dataset.locate);
+      if (s && leafletMap) {
+        leafletMap.setView([s.lat, s.lon], 9);
+        if (siteMarkersGroup) {
+          siteMarkersGroup.eachLayer((marker) => {
+            const pos = marker.getLatLng();
+            if (Math.abs(pos.lat - s.lat) < 0.001 && Math.abs(pos.lng - s.lon) < 0.001) {
+              marker.openPopup();
+            }
+          });
+        }
+      }
+    });
+  });
   elements["site-list"].querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => editSite(button.dataset.edit)));
   elements["site-list"].querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => removeSite(button.dataset.delete)));
 }
@@ -708,21 +942,30 @@ function editSite(id) {
   const site = sites.find((item) => item.id === id);
   if (!site) return;
   elements["edit-site-id"].value = site.id;
+  if (elements["site-country"]) elements["site-country"].value = site.country || normalizeCountry(site);
   elements["site-name"].value = site.name;
   elements["site-lat"].value = site.lat;
   elements["site-lon"].value = site.lon;
   elements["site-timezone"].value = site.timezone;
-  elements["form-legend"].textContent = "Editar ubicación";
+  elements["form-legend"].textContent = "Editar operación";
   elements["cancel-edit"].hidden = false;
   elements["site-name"].focus();
+  if (leafletMap) {
+    leafletMap.setView([site.lat, site.lon], 9);
+  }
 }
 
 function resetSiteForm() {
   elements["site-form"].reset();
   elements["edit-site-id"].value = "";
+  if (elements["site-country"]) elements["site-country"].value = "PE";
   elements["site-timezone"].value = "America/Lima";
-  elements["form-legend"].textContent = "Agregar ubicación";
+  elements["form-legend"].textContent = "Agregar nueva operación";
   elements["cancel-edit"].hidden = true;
+  if (clickPinMarker && leafletMap) {
+    leafletMap.removeLayer(clickPinMarker);
+    clickPinMarker = null;
+  }
 }
 
 async function removeSite(id) {
@@ -733,7 +976,7 @@ async function removeSite(id) {
   if (selectedSiteId === id) selectedSiteId = sites[0].id;
   localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
   await deleteSiteReports(id).catch(() => {});
-  renderSites(); renderSiteList(); await renderHistory(selectedSiteId);
+  renderSites(); renderSiteList(); initOrUpdateMap(); await renderHistory(selectedSiteId);
 }
 
 function exportLocalData() {
@@ -755,19 +998,52 @@ function wireEvents() {
     refreshReport();
   });
   elements["refresh-button"].addEventListener("click", refreshReport);
-  elements["manage-sites"].addEventListener("click", () => { renderSiteList(); elements["sites-dialog"].showModal(); });
-  elements["close-sites"].addEventListener("click", () => elements["sites-dialog"].close());
+  elements["manage-sites"].addEventListener("click", () => {
+    renderSiteList();
+    elements["sites-dialog"].showModal();
+    initOrUpdateMap();
+  });
+  elements["close-sites"].addEventListener("click", () => {
+    elements["sites-dialog"].close();
+    if (elements["map-search-results"]) elements["map-search-results"].hidden = true;
+  });
   elements["cancel-edit"].addEventListener("click", resetSiteForm);
+
+  elements["site-country"]?.addEventListener("change", (e) => {
+    if (e.target.value === "CL") {
+      elements["site-timezone"].value = "America/Santiago";
+    } else if (e.target.value === "PE") {
+      elements["site-timezone"].value = "America/Lima";
+    }
+  });
+
+  elements["map-search-btn"]?.addEventListener("click", () => {
+    searchLocation(elements["map-search-input"].value);
+  });
+  elements["map-search-input"]?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchLocation(elements["map-search-input"].value);
+    }
+  });
+
   elements["site-form"].addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!elements["site-form"].reportValidity()) return;
     const editId = elements["edit-site-id"].value;
-    const site = { id: editId || `site-${crypto.randomUUID()}`, name: elements["site-name"].value.trim(), lat: Number(elements["site-lat"].value), lon: Number(elements["site-lon"].value), timezone: elements["site-timezone"].value.trim() };
-    try { new Intl.DateTimeFormat("en", { timeZone: site.timezone }); } catch { showNotice("Ingresa una zona horaria IANA válida, por ejemplo America/Lima.", "error"); return; }
+    const site = {
+      id: editId || `site-${crypto.randomUUID()}`,
+      country: elements["site-country"]?.value || "PE",
+      name: elements["site-name"].value.trim(),
+      lat: Number(elements["site-lat"].value),
+      lon: Number(elements["site-lon"].value),
+      timezone: elements["site-timezone"].value.trim()
+    };
+    try { new Intl.DateTimeFormat("en", { timeZone: site.timezone }); } catch { showNotice("Ingresá una zona horaria IANA válida, por ejemplo America/Lima o America/Santiago.", "error"); return; }
     if (editId) sites = sites.map((item) => item.id === editId ? site : item);
     else sites.push(site);
     saveSites(); selectedSiteId = site.id; localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
-    renderSites(); renderSiteList(); resetSiteForm(); await renderHistory(selectedSiteId); refreshReport();
+    renderSites(); renderSiteList(); initOrUpdateMap(); resetSiteForm(); await renderHistory(selectedSiteId); refreshReport();
   });
   elements["export-data"].addEventListener("click", exportLocalData);
   elements["clear-history"].addEventListener("click", async () => {
