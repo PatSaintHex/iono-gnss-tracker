@@ -25,7 +25,18 @@
   <main>
     <section class="masthead">
       <div class="masthead-copy"><p class="eyebrow">OBSERVACIÓN GEOMAGNÉTICA · GNSS</p><h1>Estado ionosférico</h1><p class="masthead-note">Pronóstico espacial y comportamiento de señal para el sitio seleccionado.</p></div>
-      <div class="site-controls"><label for="site-select">SITIO MINERO / OPERACIÓN</label><div class="site-select-row"><select id="site-select" aria-label="Seleccionar sitio minero"></select><button id="manage-sites" class="icon-button light-button map-trigger-button" type="button" title="Ver mapa y gestionar sitios mineros" aria-label="Ver mapa y gestionar sitios mineros"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg><span>MAPA / MINAS</span></button></div><span id="site-coordinates" class="site-coordinates">--</span></div>
+      <div class="site-controls">
+        <label for="country-select">SITIO MINERO / OPERACIÓN</label>
+        <div class="site-select-cascade">
+          <select id="country-select" class="country-select" aria-label="Seleccionar país"></select>
+          <select id="site-select" class="site-select" aria-label="Seleccionar ciudad / mina"></select>
+          <button id="manage-sites" class="icon-button light-button map-trigger-button" type="button" title="Ver mapa y gestionar sitios mineros" aria-label="Ver mapa y gestionar sitios mineros">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+            <span>MAPA</span>
+          </button>
+        </div>
+        <span id="site-coordinates" class="site-coordinates">--</span>
+      </div>
     </section>
     <section class="report-meta" aria-live="polite"><div><span class="meta-label">VENTANA</span><strong id="report-period">Esperando datos</strong></div><div><span class="meta-label">FUENTES</span><strong>NOAA SWPC <span class="source-separator">/</span> GNSSPlanning</strong></div><div><span class="meta-label">ACTUALIZACIÓN</span><strong id="updated-at">Sin datos</strong></div><div id="freshness" class="freshness">--</div></section>
     <div id="notice" class="notice" role="status" hidden></div>
@@ -75,7 +86,7 @@
             <legend id="form-legend">Agregar nueva operación</legend>
             <input id="edit-site-id" type="hidden">
             
-            <div class="form-row-2">
+            <div class="form-row-3">
               <label>País
                 <select id="site-country" name="country">
                   <option value="PE">🇵🇪 Perú</option>
@@ -88,8 +99,11 @@
                   <option value="OTRO">🌐 Otro</option>
                 </select>
               </label>
+              <label>Ciudad / Región
+                <input id="site-region" name="region" maxlength="40" placeholder="Ej. Moquegua">
+              </label>
               <label>Nombre de la Mina
-                <input id="site-name" name="name" required maxlength="60" placeholder="Ej. Minera San Cristóbal">
+                <input id="site-name" name="name" required maxlength="60" placeholder="Ej. Cuajone">
               </label>
             </div>
 

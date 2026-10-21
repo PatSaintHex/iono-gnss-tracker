@@ -1,7 +1,7 @@
 import { clearReports, deleteSiteReports, listAllReports, listReports, saveReport } from "./storage.js";
 
-const SITE_KEY = "geoionosfera-sites-v3";
-const SELECTED_SITE_KEY = "geoionosfera-selected-site-v3";
+const SITE_KEY = "geoionosfera-sites-v4";
+const SELECTED_SITE_KEY = "geoionosfera-selected-site-v4";
 const WELCOME_DISMISSED_KEY = "geoionosfera-welcome-dismissed-v1";
 const GNSS_PROXY_URL = "/api/ionoindex";
 
@@ -18,61 +18,61 @@ const COUNTRY_METAS = {
 
 const DEFAULT_SITES = [
   // 🇵🇪 Perú (Cresta de la Anomalía Ecuatorial - Foco de centelleo post-atardecer)
-  { id: "cuajone", name: "Cuajone (Moquegua)", country: "PE", lat: -17.0315, lon: -70.7263, timezone: "America/Lima" },
-  { id: "toquepala", name: "Toquepala (Tacna)", country: "PE", lat: -17.2519, lon: -70.6714, timezone: "America/Lima" },
-  { id: "quellaveco", name: "Quellaveco (Moquegua)", country: "PE", lat: -17.1008, lon: -70.6186, timezone: "America/Lima" },
-  { id: "cerro-verde", name: "Cerro Verde (Arequipa)", country: "PE", lat: -16.5367, lon: -71.6169, timezone: "America/Lima" },
-  { id: "las-bambas", name: "Las Bambas (Apurímac)", country: "PE", lat: -14.0975, lon: -72.3197, timezone: "America/Lima" },
-  { id: "antapaccay", name: "Antapaccay (Cusco)", country: "PE", lat: -14.9292, lon: -71.3061, timezone: "America/Lima" },
-  { id: "constancia", name: "Constancia (Cusco)", country: "PE", lat: -14.4758, lon: -71.7761, timezone: "America/Lima" },
-  { id: "toromocho", name: "Toromocho (Junín)", country: "PE", lat: -11.6214, lon: -76.1408, timezone: "America/Lima" },
-  { id: "antamina", name: "Antamina (Áncash)", country: "PE", lat: -9.5344, lon: -77.0514, timezone: "America/Lima" },
-  { id: "yanacocha", name: "Yanacocha (Cajamarca)", country: "PE", lat: -6.9856, lon: -78.5089, timezone: "America/Lima" },
+  { id: "cuajone", country: "PE", region: "Moquegua", name: "Cuajone", lat: -17.0315, lon: -70.7263, timezone: "America/Lima" },
+  { id: "toquepala", country: "PE", region: "Tacna", name: "Toquepala", lat: -17.2519, lon: -70.6714, timezone: "America/Lima" },
+  { id: "quellaveco", country: "PE", region: "Moquegua", name: "Quellaveco", lat: -17.1008, lon: -70.6186, timezone: "America/Lima" },
+  { id: "cerro-verde", country: "PE", region: "Arequipa", name: "Cerro Verde", lat: -16.5367, lon: -71.6169, timezone: "America/Lima" },
+  { id: "las-bambas", country: "PE", region: "Apurímac", name: "Las Bambas", lat: -14.0975, lon: -72.3197, timezone: "America/Lima" },
+  { id: "antapaccay", country: "PE", region: "Cusco", name: "Antapaccay", lat: -14.9292, lon: -71.3061, timezone: "America/Lima" },
+  { id: "constancia", country: "PE", region: "Cusco", name: "Constancia", lat: -14.4758, lon: -71.7761, timezone: "America/Lima" },
+  { id: "toromocho", country: "PE", region: "Junín", name: "Toromocho", lat: -11.6214, lon: -76.1408, timezone: "America/Lima" },
+  { id: "antamina", country: "PE", region: "Áncash", name: "Antamina", lat: -9.5344, lon: -77.0514, timezone: "America/Lima" },
+  { id: "yanacocha", country: "PE", region: "Cajamarca", name: "Yanacocha", lat: -6.9856, lon: -78.5089, timezone: "America/Lima" },
 
   // 🇨🇱 Chile (Cinturón de Cobre del Desierto de Atacama y Zona Central)
-  { id: "escondida", name: "Minera Escondida (Antofagasta)", country: "CL", lat: -24.2678, lon: -69.0717, timezone: "America/Santiago" },
-  { id: "collahuasi", name: "Minera Collahuasi (Tarapacá)", country: "CL", lat: -20.9633, lon: -68.7061, timezone: "America/Santiago" },
-  { id: "quebrada-blanca", name: "Quebrada Blanca (Tarapacá)", country: "CL", lat: -20.9989, lon: -68.8028, timezone: "America/Santiago" },
-  { id: "chuquicamata", name: "Chuquicamata (Antofagasta)", country: "CL", lat: -22.2961, lon: -68.9022, timezone: "America/Santiago" },
-  { id: "spence", name: "Minera Spence (Antofagasta)", country: "CL", lat: -22.8089, lon: -69.2689, timezone: "America/Santiago" },
-  { id: "centinela", name: "Minera Centinela (Antofagasta)", country: "CL", lat: -23.0117, lon: -69.1711, timezone: "America/Santiago" },
-  { id: "pelambres", name: "Los Pelambres (Coquimbo)", country: "CL", lat: -31.7161, lon: -70.4950, timezone: "America/Santiago" },
-  { id: "teniente", name: "El Teniente (O'Higgins)", country: "CL", lat: -34.0911, lon: -70.4700, timezone: "America/Santiago" },
+  { id: "escondida", country: "CL", region: "Antofagasta", name: "Minera Escondida", lat: -24.2678, lon: -69.0717, timezone: "America/Santiago" },
+  { id: "collahuasi", country: "CL", region: "Tarapacá", name: "Minera Collahuasi", lat: -20.9633, lon: -68.7061, timezone: "America/Santiago" },
+  { id: "quebrada-blanca", country: "CL", region: "Tarapacá", name: "Quebrada Blanca", lat: -20.9989, lon: -68.8028, timezone: "America/Santiago" },
+  { id: "chuquicamata", country: "CL", region: "Antofagasta", name: "Chuquicamata", lat: -22.2961, lon: -68.9022, timezone: "America/Santiago" },
+  { id: "spence", country: "CL", region: "Antofagasta", name: "Minera Spence", lat: -22.8089, lon: -69.2689, timezone: "America/Santiago" },
+  { id: "centinela", country: "CL", region: "Antofagasta", name: "Minera Centinela", lat: -23.0117, lon: -69.1711, timezone: "America/Santiago" },
+  { id: "pelambres", country: "CL", region: "Coquimbo", name: "Los Pelambres", lat: -31.7161, lon: -70.4950, timezone: "America/Santiago" },
+  { id: "teniente", country: "CL", region: "O'Higgins", name: "El Teniente", lat: -34.0911, lon: -70.4700, timezone: "America/Santiago" },
 
   // 🇧🇴 Bolivia (Altiplano Central Andino)
-  { id: "san-cristobal", name: "Minera San Cristóbal (Potosí)", country: "BO", lat: -21.1578, lon: -67.2028, timezone: "America/La_Paz" },
-  { id: "huanuni", name: "Empresa Minera Huanuni (Oruro)", country: "BO", lat: -18.2889, lon: -66.8344, timezone: "America/La_Paz" },
-  { id: "mutun", name: "Yacimiento Mutún (Santa Cruz)", country: "BO", lat: -19.1917, lon: -57.8867, timezone: "America/La_Paz" },
+  { id: "san-cristobal", country: "BO", region: "Potosí", name: "Minera San Cristóbal", lat: -21.1578, lon: -67.2028, timezone: "America/La_Paz" },
+  { id: "huanuni", country: "BO", region: "Oruro", name: "Empresa Minera Huanuni", lat: -18.2889, lon: -66.8344, timezone: "America/La_Paz" },
+  { id: "mutun", country: "BO", region: "Santa Cruz", name: "Yacimiento Mutún", lat: -19.1917, lon: -57.8867, timezone: "America/La_Paz" },
 
   // 🇧🇷 Brasil (Bajo el Ecuador Magnético y Cuadrilátero Ferrífero)
-  { id: "carajas-s11d", name: "Complexo Carajás S11D (Pará)", country: "BR", lat: -6.4089, lon: -50.3167, timezone: "America/Belem" },
-  { id: "brucutu", name: "Mina Brucutu (Minas Gerais)", country: "BR", lat: -19.8600, lon: -43.3933, timezone: "America/Sao_Paulo" },
-  { id: "mariana", name: "Complexo Mariana (Minas Gerais)", country: "BR", lat: -20.2167, lon: -43.4167, timezone: "America/Sao_Paulo" },
+  { id: "carajas-s11d", country: "BR", region: "Pará", name: "Complexo Carajás S11D", lat: -6.4089, lon: -50.3167, timezone: "America/Belem" },
+  { id: "brucutu", country: "BR", region: "Minas Gerais", name: "Mina Brucutu", lat: -19.8600, lon: -43.3933, timezone: "America/Sao_Paulo" },
+  { id: "mariana", country: "BR", region: "Minas Gerais", name: "Complexo Mariana", lat: -20.2167, lon: -43.4167, timezone: "America/Sao_Paulo" },
 
   // 🇨🇴 Colombia (Zona de Baja Latitud Geomagnética)
-  { id: "cerrejon", name: "El Cerrejón (La Guajira)", country: "CO", lat: 11.0889, lon: -72.6711, timezone: "America/Bogota" },
-  { id: "cerro-matoso", name: "Cerro Matoso (Córdoba)", country: "CO", lat: 7.9556, lon: -75.5689, timezone: "America/Bogota" },
-  { id: "buritica", name: "Mina Buriticá (Antioquia)", country: "CO", lat: 6.7167, lon: -75.9083, timezone: "America/Bogota" },
+  { id: "cerrejon", country: "CO", region: "La Guajira", name: "El Cerrejón", lat: 11.0889, lon: -72.6711, timezone: "America/Bogota" },
+  { id: "cerro-matoso", country: "CO", region: "Córdoba", name: "Cerro Matoso", lat: 7.9556, lon: -75.5689, timezone: "America/Bogota" },
+  { id: "buritica", country: "CO", region: "Antioquia", name: "Mina Buriticá", lat: 6.7167, lon: -75.9083, timezone: "America/Bogota" },
 
   // 🇪🇨 Ecuador (Ecuador Geográfico / Cinturón del Cóndor)
-  { id: "mirador", name: "Mina Mirador (Zamora Chinchipe)", country: "EC", lat: -3.5689, lon: -78.4356, timezone: "America/Guayaquil" },
-  { id: "fruta-del-norte", name: "Fruta del Norte (Zamora Chinchipe)", country: "EC", lat: -3.7667, lon: -78.4833, timezone: "America/Guayaquil" },
+  { id: "mirador", country: "EC", region: "Zamora Chinchipe", name: "Mina Mirador", lat: -3.5689, lon: -78.4356, timezone: "America/Guayaquil" },
+  { id: "fruta-del-norte", country: "EC", region: "Zamora Chinchipe", name: "Fruta del Norte", lat: -3.7667, lon: -78.4833, timezone: "America/Guayaquil" },
 
   // 🇦🇷 Argentina (Cordillera de Cuyo y Noroeste Argentino)
-  { id: "veladero", name: "Mina Veladero (San Juan)", country: "AR", lat: -29.3814, lon: -69.9536, timezone: "America/Argentina/San_Juan" },
-  { id: "alumbrera", name: "Bajo de la Alumbrera (Catamarca)", country: "AR", lat: -27.3306, lon: -66.6083, timezone: "America/Argentina/Catamarca" },
-  { id: "lindero", name: "Mina Lindero (Salta)", country: "AR", lat: -25.0933, lon: -67.7567, timezone: "America/Argentina/Salta" }
+  { id: "veladero", country: "AR", region: "San Juan", name: "Mina Veladero", lat: -29.3814, lon: -69.9536, timezone: "America/Argentina/San_Juan" },
+  { id: "alumbrera", country: "AR", region: "Catamarca", name: "Bajo de la Alumbrera", lat: -27.3306, lon: -66.6083, timezone: "America/Argentina/Catamarca" },
+  { id: "lindero", country: "AR", region: "Salta", name: "Mina Lindero", lat: -25.0933, lon: -67.7567, timezone: "America/Argentina/Salta" }
 ];
 const NOAA_URL = "https://services.swpc.noaa.gov/text/3-day-forecast.txt";
 const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15-18UT", "18-21UT", "21-00UT"];
 
 const elements = Object.fromEntries([
-  "connection-status", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
+  "connection-status", "country-select", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
   "help-button", "welcome-dialog", "close-welcome", "dismiss-welcome", "remember-welcome",
   "report-period", "updated-at", "freshness", "notice", "summary-content", "ionosphere-chart", "chart-empty",
   "kp-body", "kp-date-0", "kp-date-1", "kp-date-2", "storm-badge", "scint-events", "storm-events",
   "history-count", "history-list", "sites-dialog", "site-form", "site-list", "form-legend", "edit-site-id",
-  "site-country", "site-name", "site-lat", "site-lon", "site-timezone", "cancel-edit", "close-sites", "export-data",
+  "site-country", "site-region", "site-name", "site-lat", "site-lon", "site-timezone", "cancel-edit", "close-sites", "export-data",
   "clear-history", "catalog-count", "sites-map", "map-search-input", "map-search-btn", "map-search-results"
 ].map((id) => [id, document.getElementById(id)]));
 
@@ -184,28 +184,57 @@ function setConnection(state, label) {
   elements["connection-status"].lastElementChild.textContent = label;
 }
 
+function siteDisplayName(site) {
+  if (site.region && site.region.trim()) {
+    return `${site.region.trim()} — ${site.name.trim()}`;
+  }
+  return site.name.trim();
+}
+
 function renderSites() {
   if (!sites.some((site) => site.id === selectedSiteId)) selectedSiteId = sites[0].id;
+  const currentSite = getSelectedSite();
+  const currentCountry = currentSite.country || normalizeCountry(currentSite);
 
+  // 1. Populate Country dropdown
+  const availableCountries = Array.from(new Set(sites.map((s) => s.country || normalizeCountry(s))));
   const order = ["PE", "CL", "BO", "BR", "CO", "EC", "AR", "OTRO"];
-  let html = "";
-  for (const code of order) {
-    const list = sites.filter((s) => (s.country || normalizeCountry(s)) === code);
-    if (list.length) {
+  const sortedCountries = [
+    ...order.filter((code) => availableCountries.includes(code)),
+    ...availableCountries.filter((code) => !order.includes(code))
+  ];
+
+  if (elements["country-select"]) {
+    elements["country-select"].innerHTML = sortedCountries.map((code) => {
       const meta = COUNTRY_METAS[code] || { flag: "📍", name: code };
-      html += `<optgroup label="${meta.flag} ${meta.name}">` +
-        list.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join("") +
-        `</optgroup>`;
-    }
+      return `<option value="${escapeHtml(code)}">${meta.flag} ${escapeHtml(meta.name)}</option>`;
+    }).join("");
+    elements["country-select"].value = currentCountry;
   }
 
-  elements["site-select"].innerHTML = html;
-  elements["site-select"].value = selectedSiteId;
+  // 2. Populate Site dropdown for current country (sorted by Ciudad / Región — Mina)
+  renderSitesForCountry(currentCountry);
+
   localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
   const site = getSelectedSite();
   const cCode = site.country || normalizeCountry(site);
   const flag = COUNTRY_METAS[cCode]?.flag ? `${COUNTRY_METAS[cCode].flag} ` : "";
   elements["site-coordinates"].textContent = `${flag}${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
+}
+
+function renderSitesForCountry(countryCode) {
+  const countrySites = sites
+    .filter((s) => (s.country || normalizeCountry(s)) === countryCode)
+    .sort((a, b) => siteDisplayName(a).localeCompare(siteDisplayName(b), "es", { sensitivity: "base" }));
+
+  if (!countrySites.some((s) => s.id === selectedSiteId) && countrySites.length > 0) {
+    selectedSiteId = countrySites[0].id;
+  }
+
+  elements["site-select"].innerHTML = countrySites.map((site) => {
+    return `<option value="${escapeHtml(site.id)}">${escapeHtml(siteDisplayName(site))}</option>`;
+  }).join("");
+  elements["site-select"].value = selectedSiteId;
 }
 
 function parseNoaa(text) {
@@ -954,7 +983,7 @@ function renderSiteList() {
     return `
       <div class="site-row">
         <div>
-          <strong><span class="site-flag">${flag}</span> ${escapeHtml(site.name)}</strong>
+          <strong><span class="site-flag">${flag}</span> ${escapeHtml(siteDisplayName(site))}</strong>
           <small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small>
         </div>
         <div class="site-row-actions">
@@ -991,6 +1020,7 @@ function editSite(id) {
   if (!site) return;
   elements["edit-site-id"].value = site.id;
   if (elements["site-country"]) elements["site-country"].value = site.country || normalizeCountry(site);
+  if (elements["site-region"]) elements["site-region"].value = site.region || "";
   elements["site-name"].value = site.name;
   elements["site-lat"].value = site.lat;
   elements["site-lon"].value = site.lon;
@@ -1007,6 +1037,7 @@ function resetSiteForm() {
   elements["site-form"].reset();
   elements["edit-site-id"].value = "";
   if (elements["site-country"]) elements["site-country"].value = "PE";
+  if (elements["site-region"]) elements["site-region"].value = "";
   elements["site-timezone"].value = "America/Lima";
   elements["form-legend"].textContent = "Agregar nueva operación";
   elements["cancel-edit"].hidden = true;
@@ -1039,12 +1070,29 @@ function exportLocalData() {
 }
 
 function wireEvents() {
-  elements["site-select"].addEventListener("change", async () => {
-    selectedSiteId = elements["site-select"].value;
-    renderSites();
+  elements["country-select"]?.addEventListener("change", async () => {
+    const newCountry = elements["country-select"].value;
+    renderSitesForCountry(newCountry);
+    const site = getSelectedSite();
+    const cCode = site.country || normalizeCountry(site);
+    const flag = COUNTRY_METAS[cCode]?.flag ? `${COUNTRY_METAS[cCode].flag} ` : "";
+    elements["site-coordinates"].textContent = `${flag}${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
+    localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
     await renderHistory(selectedSiteId);
     refreshReport();
   });
+
+  elements["site-select"].addEventListener("change", async () => {
+    selectedSiteId = elements["site-select"].value;
+    const site = getSelectedSite();
+    const cCode = site.country || normalizeCountry(site);
+    const flag = COUNTRY_METAS[cCode]?.flag ? `${COUNTRY_METAS[cCode].flag} ` : "";
+    elements["site-coordinates"].textContent = `${flag}${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
+    localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
+    await renderHistory(selectedSiteId);
+    refreshReport();
+  });
+
   elements["refresh-button"].addEventListener("click", refreshReport);
   elements["manage-sites"].addEventListener("click", () => {
     renderSiteList();
@@ -1081,6 +1129,7 @@ function wireEvents() {
     const site = {
       id: editId || `site-${crypto.randomUUID()}`,
       country: elements["site-country"]?.value || "PE",
+      region: elements["site-region"]?.value.trim() || "",
       name: elements["site-name"].value.trim(),
       lat: Number(elements["site-lat"].value),
       lon: Number(elements["site-lon"].value),
