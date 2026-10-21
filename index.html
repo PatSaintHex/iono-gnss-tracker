@@ -17,6 +17,7 @@
     <a class="brand" href="./" aria-label="GeoIonosfera, inicio"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>GEO<span class="brand-light">IONOSFERA</span></span></a>
     <div class="top-actions">
       <span id="connection-status" class="connection-status"><span class="status-dot"></span><span>Conectando</span></span>
+      <button id="legal-button" class="legal-button" type="button" title="Aviso legal, descargo de responsabilidad y fuentes oficiales" aria-label="Abrir aviso legal y descargo de responsabilidad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>AVISO LEGAL</span></button>
       <button id="help-button" class="help-button" type="button" title="Guía de conceptos y ayuda" aria-label="Abrir guía de ayuda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg><span>AYUDA</span></button>
       <button id="install-button" class="icon-button install-button" type="button" hidden title="Instalar aplicación" aria-label="Instalar aplicación"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg></button>
       <button id="refresh-button" class="icon-button" type="button" title="Actualizar datos" aria-label="Actualizar datos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-4"/></svg></button>
@@ -48,7 +49,15 @@
     </section>
     <section class="history-section" aria-labelledby="history-title"><div class="section-heading compact-heading"><div><p class="eyebrow">ALMACENAMIENTO DE ESTE DISPOSITIVO</p><h2 id="history-title">Consultas guardadas</h2></div><span id="history-count" class="history-count">0</span></div><div id="history-list" class="history-list"><p class="empty-state">Las consultas se guardarán aquí para uso sin conexión.</p></div></section>
   </main>
-  <footer><span>GeoIonosfera</span><span>Datos informativos · No sustituye alertas oficiales ni sistemas operacionales</span></footer>
+  <footer>
+    <div class="footer-brand-side">
+      <span>GeoIonosfera</span>
+      <span class="footer-acceptance-notice">El uso de este sitio implica la aceptación automática del <button id="footer-legal-button" class="footer-legal-link" type="button">Aviso Legal y Descargo de Responsabilidad</button>.</span>
+    </div>
+    <div class="footer-sources-side">
+      <span>Datos informativos · No sustituye alertas oficiales de navegación ni instrumental en campo.</span>
+    </div>
+  </footer>
   <dialog id="sites-dialog" class="sites-dialog">
     <div class="dialog-heading">
       <div>
@@ -232,6 +241,123 @@
           <span class="help-reminder-text">Podés consultar esta guía cuando quieras pulsando <strong>AYUDA</strong> en la barra superior.</span>
           <button id="dismiss-welcome" class="primary-button" type="button">Entendido, ir al monitor</button>
         </div>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="legal-dialog" class="legal-dialog" aria-labelledby="legal-title">
+    <div class="legal-container">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">CONDICIONES DE USO · DESLINDE DE RESPONSABILIDAD</p>
+          <h2 id="legal-title">Aviso Legal y Descargo de Responsabilidad</h2>
+        </div>
+        <button id="close-legal" class="icon-button" type="button" title="Cerrar aviso legal" aria-label="Cerrar aviso legal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- BANNER DE ACEPTACIÓN AUTOMÁTICA -->
+      <div class="legal-acceptance-banner" role="alert">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <div>
+          <strong>ACEPTACIÓN AUTOMÁTICA E INCONDICIONAL DE ESTOS TÉRMINOS:</strong>
+          <span>El acceso, consulta o uso de este sitio web (<strong>GeoIonosfera</strong>) constituye la <strong>aceptación automática, plena e irrevocable</strong> de todas las condiciones, limitaciones y descargos de responsabilidad aquí estipulados. Si el usuario no está de acuerdo con alguno de estos términos, debe abstenerse de manera inmediata de navegar y utilizar esta plataforma.</span>
+        </div>
+      </div>
+
+      <div class="legal-sections">
+        <!-- 1. FINALIDAD -->
+        <article class="legal-card">
+          <div class="legal-card-header">
+            <span class="legal-tag tag-info">FINALIDAD</span>
+            <h3>1. Carácter Estrictamente Informativo y Académico</h3>
+          </div>
+          <div class="legal-card-body">
+            <p>GeoIonosfera es un proyecto independiente con fines de divulgación científica, visualización exploratoria e investigación del clima espacial. <strong>No constituye una estación de servicio oficial de radionavegación, ni un servicio de meteorología aeronáutica certificada, ni un sistema metrológico geodésico reglamentado.</strong></p>
+          </div>
+        </article>
+
+        <!-- 2. DESLINDE TOTAL -->
+        <article class="legal-card">
+          <div class="legal-card-header">
+            <span class="legal-tag tag-shield">RESPONSABILIDAD</span>
+            <h3>2. Exclusión Total de Responsabilidad Operacional y Financiera</h3>
+          </div>
+          <div class="legal-card-body">
+            <p>Los creadores, mantenedores y proveedores de infraestructura tecnológica de este sitio <strong>no asumen ninguna responsabilidad civil, comercial, penal, laboral o contractual</strong> bajo ninguna circunstancia por:</p>
+            <ul class="legal-bullets">
+              <li><strong>Pérdidas económicas o lucro cesante:</strong> Cualquier costo derivado de demoras de turno, paradas de planta concentradora, paralización de flotas de acarreo, palas o perforadoras mineras, o cancelación de faenas en terreno.</li>
+              <li><strong>Decisiones operacionales:</strong> Toda decisión de despacho, seguridad minera o maniobra industrial basada de manera parcial o total en la información provista en esta web es de exclusiva y entera responsabilidad del operador o empresa contratista.</li>
+              <li><strong>Vuelos de Drones y Sistemas RPAS:</strong> Incidentes de vuelo, pérdida de enlace C2, retorno forzado a casa (RTH) o accidentes derivados de interferencias electromagnéticas o ionosféricas. Las operaciones aéreas deben regirse siempre por la normativa de la autoridad de aviación civil correspondiente.</li>
+              <li><strong>Mediciones geodésicas y topografía:</strong> Saltos de ciclo, pérdida de inicialización RTK (estado <em>Float</em> en vez de <em>Fix</em>) o desvíos milimétricos en replanteos de obras civiles y mineras.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- 3. PREVALENCIA INSTRUMENTAL -->
+        <article class="legal-card">
+          <div class="legal-card-header">
+            <span class="legal-tag tag-field">CONTROL DE CAMPO</span>
+            <h3>3. Prevalencia Obligatoria de Instrumental y Normas de Sitio</h3>
+          </div>
+          <div class="legal-card-body">
+            <p>Los modelos globales y regionales de propagación ionosférica aquí expuestos <strong>no sustituyen</strong> la verificación instrumental directa en campo: bases RTK locales, receptores geodésicos de monitoreo continuo (CORS), comprobación de dilución de precisión geométrica (GDOP/PDOP), relación señal a ruido (SNR) y los protocolos internos de prevención de riesgos de cada compañía operadora.</p>
+          </div>
+        </article>
+
+        <!-- 4. ENLACES A PORTALES OFICIALES -->
+        <article class="legal-card">
+          <div class="legal-card-header">
+            <span class="legal-tag tag-sources">FUENTES OFICIALES</span>
+            <h3>4. Procedencia de Datos y Portales Web Oficiales</h3>
+          </div>
+          <div class="legal-card-body">
+            <p>Este monitor consolida y visualiza información generada por entidades de referencia científica mundial. Para consultas formales, auditorías técnicas o verificación de pronósticos originales, consulte directamente sus páginas web oficiales:</p>
+
+            <div class="sources-web-grid">
+              <a class="source-web-card" href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener noreferrer">
+                <div class="source-badge">NOAA SWPC</div>
+                <div class="source-details">
+                  <strong>Space Weather Prediction Center</strong>
+                  <p>Sitio web institucional de la agencia oficial de los EE.UU. para la vigilancia y alertas de clima espacial planetario.</p>
+                  <span class="source-link-action">Visitar swpc.noaa.gov ↗</span>
+                </div>
+              </a>
+
+              <a class="source-web-card" href="https://www.swpc.noaa.gov/noaa-scales-explanation" target="_blank" rel="noopener noreferrer">
+                <div class="source-badge">ESCALAS NOAA</div>
+                <div class="source-details">
+                  <strong>Explicación Oficial de Escalas NOAA (G, S, R)</strong>
+                  <p>Definiciones oficiales y niveles de impacto de las tormentas geomagnéticas (G1 a G5), radiación solar y bloqueos de radio.</p>
+                  <span class="source-link-action">Visitar noaa-scales-explanation ↗</span>
+                </div>
+              </a>
+
+              <a class="source-web-card" href="https://www.swpc.noaa.gov/phenomena/ionosphere" target="_blank" rel="noopener noreferrer">
+                <div class="source-badge">NOAA TEC</div>
+                <div class="source-details">
+                  <strong>Portal de Fenómenos Ionosféricos y TEC (SWPC)</strong>
+                  <p>Recursos y modelos globales de investigación de la ionosfera, retardo de propagación electromagnética y densidad de plasma.</p>
+                  <span class="source-link-action">Visitar phenomena/ionosphere ↗</span>
+                </div>
+              </a>
+
+              <a class="source-web-card" href="https://www.gnssplanning.com/" target="_blank" rel="noopener noreferrer">
+                <div class="source-badge">TRIMBLE</div>
+                <div class="source-details">
+                  <strong>Trimble GNSS Planning Online</strong>
+                  <p>Portal web oficial de Trimble Inc. para la planificación satelital, visibilidad de constelaciones GNSS, TEC y centelleo ionosférico.</p>
+                  <span class="source-link-action">Visitar gnssplanning.com ↗</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="legal-footer">
+        <span class="legal-footer-note">Al hacer clic en "Entendido y Aceptado" o cerrar esta ventana, el usuario ratifica su conformidad con estos términos.</span>
+        <button id="dismiss-legal" class="primary-button" type="button">Entendido y Aceptado</button>
       </div>
     </div>
   </dialog>

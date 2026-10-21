@@ -69,6 +69,7 @@ const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15
 const elements = Object.fromEntries([
   "connection-status", "country-select", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
   "help-button", "welcome-dialog", "close-welcome", "dismiss-welcome", "remember-welcome",
+  "legal-button", "legal-dialog", "close-legal", "dismiss-legal", "footer-legal-button",
   "report-period", "updated-at", "freshness", "notice", "summary-content", "ionosphere-chart", "chart-empty",
   "kp-body", "kp-date-0", "kp-date-1", "kp-date-2", "storm-badge", "scint-events", "storm-events",
   "history-count", "history-list", "sites-dialog", "site-form", "site-list", "form-legend", "edit-site-id",
@@ -1166,6 +1167,17 @@ function wireEvents() {
   elements["dismiss-welcome"]?.addEventListener("click", closeWelcome);
   elements["welcome-dialog"]?.addEventListener("click", (event) => {
     if (event.target === elements["welcome-dialog"]) closeWelcome();
+  });
+
+  const closeLegal = () => elements["legal-dialog"]?.close();
+  const openLegal = () => elements["legal-dialog"]?.showModal();
+
+  elements["legal-button"]?.addEventListener("click", openLegal);
+  elements["footer-legal-button"]?.addEventListener("click", openLegal);
+  elements["close-legal"]?.addEventListener("click", closeLegal);
+  elements["dismiss-legal"]?.addEventListener("click", closeLegal);
+  elements["legal-dialog"]?.addEventListener("click", (event) => {
+    if (event.target === elements["legal-dialog"]) closeLegal();
   });
 }
 

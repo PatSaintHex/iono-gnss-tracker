@@ -40,6 +40,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .help-button { height: 36px; padding: 0 12px 0 9px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #7ebcb2; border-radius: 18px; background: #225164; color: #e5f4f1; font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
 .help-button:hover { background: #2f6b83; border-color: #b3ebe2; color: #ffffff; }
 .help-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.legal-button { height: 36px; padding: 0 11px 0 9px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #bf8a32; border-radius: 18px; background: #3c3218; color: #faebd0; font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.legal-button:hover { background: #52421c; border-color: #f7bf57; color: #ffffff; }
+.legal-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 main { max-width: 1380px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 58px) 48px; }
 .masthead { min-height: 192px; display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 27px 0 30px; border-bottom: 1px solid var(--line); }
@@ -136,8 +139,13 @@ h2 { font-size: 27px; color: var(--deep); }
 .history-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); text-align: left; }
 .history-entry:hover { border-color: #779a99; background: #f9fbf9; }
 .history-entry strong { display: block; font-size: 11px; }.history-entry span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
-footer { min-height: 52px; display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 0 clamp(18px, 4vw, 58px); background: #e7ece8; color: #65767a; font-size: 10px; }
-footer span:first-child { font-family: var(--display); color: var(--deep); font-size: 15px; font-weight: 600; }
+footer { min-height: 52px; display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 12px clamp(18px, 4vw, 58px); background: #e7ece8; color: #65767a; font-size: 11px; flex-wrap: wrap; }
+.footer-brand-side { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.footer-brand-side > span:first-child { font-family: var(--display); color: var(--deep); font-size: 15px; font-weight: 600; }
+.footer-acceptance-notice { font-size: 10.5px; color: #4e6267; }
+.footer-legal-link { padding: 0; border: 0; background: transparent; color: var(--deep-2); font-weight: 600; font-size: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.footer-legal-link:hover { color: var(--teal); }
+.footer-sources-side { font-size: 10.5px; color: #728488; }
 
 .sites-dialog { width: min(980px, calc(100% - 24px)); max-height: min(92vh, 880px); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 22px 24px; border: 0; box-shadow: 0 18px 70px #122e3a38; color: var(--ink); border-radius: 4px; }
 .sites-dialog::backdrop { background: #102f3a99; backdrop-filter: blur(2px); }
@@ -233,6 +241,44 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
 .welcome-actions { display: flex; align-items: center; gap: 14px; }
 .help-reminder-text { color: var(--muted); font-size: 11px; max-width: 260px; line-height: 1.35; text-align: right; }
 
+/* Modal de Aviso Legal y Descargo */
+.legal-dialog { width: min(880px, calc(100% - 24px)); max-height: min(92vh, 880px); padding: 0; border: 0; box-shadow: 0 20px 80px rgba(18, 46, 58, 0.45); color: var(--ink); border-radius: 4px; background: #ffffff; }
+.legal-dialog::backdrop { background: rgba(16, 47, 58, 0.78); backdrop-filter: blur(2px); }
+.legal-container { padding: 26px 28px 22px; max-height: min(92vh, 880px); overflow-y: auto; }
+
+/* Banner de Aceptación Automática */
+.legal-acceptance-banner { display: flex; gap: 14px; align-items: flex-start; margin: 16px 0 20px; padding: 14px 16px; border: 1px solid #e2a84b; border-left: 5px solid #c78a24; background: #fff9ed; border-radius: 3px; }
+.legal-acceptance-banner svg { flex: 0 0 24px; width: 24px; height: 24px; fill: none; stroke: #a36b13; stroke-width: 2; margin-top: 1px; }
+.legal-acceptance-banner div { font-size: 12.5px; line-height: 1.55; color: #4b3612; }
+.legal-acceptance-banner strong { display: block; margin-bottom: 3px; color: #7b4f08; font-size: 12.5px; letter-spacing: 0.3px; }
+
+.legal-sections { display: grid; gap: 16px; margin-bottom: 22px; }
+.legal-card { padding: 16px 18px; border: 1px solid var(--line); border-radius: 3px; background: #fbfdfc; }
+.legal-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.legal-card-header h3 { margin: 0; font-family: var(--display); font-size: 17px; color: var(--deep); }
+.legal-tag { padding: 2px 7px; border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+.tag-info { background: #d9edf2; color: #0f6373; border: 1px solid #99cdd8; }
+.tag-shield { background: #fee8c8; color: #9c4c00; border: 1px solid #f6b56b; }
+.tag-field { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+.tag-sources { background: #ede7f6; color: #4527a0; border: 1px solid #b39ddb; }
+.legal-card-body p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: #32474d; }
+.legal-card-body p:last-child { margin-bottom: 0; }
+.legal-bullets { margin: 8px 0 0; padding-left: 20px; font-size: 12px; line-height: 1.55; color: #3b5056; }
+.legal-bullets li { margin-bottom: 6px; }
+.legal-bullets li:last-child { margin-bottom: 0; }
+
+/* Grid de fuentes oficiales */
+.sources-web-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+.source-web-card { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid #c9d8d4; border-radius: 3px; background: #ffffff; text-decoration: none; color: inherit; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.source-web-card:hover { border-color: var(--teal); box-shadow: 0 4px 14px rgba(12, 130, 123, 0.12); transform: translateY(-1px); }
+.source-badge { align-self: flex-start; padding: 2px 6px; border-radius: 2px; background: #e8eff2; color: var(--deep); font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px; }
+.source-details strong { display: block; font-size: 13px; color: var(--deep); margin-bottom: 3px; font-family: var(--display); }
+.source-details p { margin: 0 0 6px; font-size: 11.5px; line-height: 1.4; color: #52676c; }
+.source-link-action { display: inline-block; font-size: 11px; font-weight: 700; color: var(--teal); }
+
+.legal-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.legal-footer-note { font-size: 11px; color: var(--muted); max-width: 540px; line-height: 1.4; }
+
 @media (max-width: 760px) {
   .masthead { min-height: 0; align-items: flex-start; flex-direction: column; gap: 20px; padding: 26px 0 22px; }
   h1 { font-size: 40px; }
@@ -259,7 +305,10 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
   .help-reminder-text { text-align: left; max-width: none; font-size: 10.5px; }
   .guide-scale-bar { min-width: 440px; }
   .guide-card-body { overflow-x: auto; }
-  footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 2px; padding-top: 10px; padding-bottom: 10px; }
+  .sources-web-grid { grid-template-columns: 1fr; gap: 10px; }
+  .legal-footer { flex-direction: column-reverse; align-items: stretch; gap: 12px; }
+  .legal-footer-note { text-align: left; max-width: none; }
+  footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 6px; padding-top: 12px; padding-bottom: 12px; }
 }
 
 @media (max-width: 540px) {
@@ -271,12 +320,19 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
   .connection-status { padding: 4px; }
   .help-button { height: 32px; padding: 0 9px; font-size: 10px; gap: 4px; }
   .help-button svg { width: 14px; height: 14px; }
+  .legal-button { height: 32px; padding: 0 8px; font-size: 10px; gap: 4px; }
+  .legal-button svg { width: 14px; height: 14px; }
   .icon-button { width: 32px; height: 32px; flex: 0 0 32px; }
   .icon-button svg { width: 15px; height: 15px; }
   .welcome-dialog { width: calc(100% - 16px); }
   .welcome-container { padding: 16px 14px; }
   .guide-card { padding: 13px 12px; }
   .guide-card-header h3 { font-size: 16px; }
+  .legal-dialog { width: calc(100% - 16px); }
+  .legal-container { padding: 16px 14px; }
+  .legal-acceptance-banner { flex-direction: column; gap: 8px; }
+  .legal-card { padding: 13px 12px; }
+  .legal-card-header h3 { font-size: 15px; }
   .sites-dialog { padding: 16px 12px; }
   .site-select-cascade { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
   .country-select { width: 100%; }
@@ -291,6 +347,8 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
 @media (max-width: 420px) {
   .brand { font-size: 16px; }
   .brand-light { display: none; }
+  .help-button span, .legal-button span { display: none; }
+  .help-button, .legal-button { width: 32px; height: 32px; flex: 0 0 32px; padding: 0; justify-content: center; }
   .summary-content { grid-template-columns: 1fr; }
   .event-columns { grid-template-columns: 1fr; }
   .chart-frame { height: 235px; }
