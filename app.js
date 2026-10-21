@@ -186,7 +186,8 @@ async function fetchGnssDay(site, date) {
   if (!proxyUrl) {
     // Si no hay Cloudflare Worker configurado, usamos los datos de muestra locales adaptados a la fecha
     try {
-      const sampleResponse = await fetch("./data/cuajone_sample.json", { cache: "no-store" });
+      const sampleUrl = new URL("./data/cuajone_sample.json", import.meta.url).href;
+      const sampleResponse = await fetch(sampleUrl, { cache: "no-store" });
       if (sampleResponse.ok) {
         const rawSample = await sampleResponse.json();
         const baseTime = Date.parse("2026-01-01T05:00:00Z");
@@ -931,5 +932,49 @@ async function initialize() {
 
   refreshReport();
 }
+
+window.debugGeo = {
+  getReport: () => activeReport,
+  async diagnose() {
+    console.log("=== DIAGNÓSTICO GEOIONOSFERA ===");
+    console.log("URL:", window.location.href);
+    console.log("import.meta.url:", import.meta.url);
+    const sampleUrl = new URL("./data/cuajone_sample.json", import.meta.url).href;
+    console.log("URL muestra:", sampleUrl);
+    try {
+      const res = await fetch(sampleUrl);
+      console.log("Fetch muestra HTTP:", res.status, res.ok ? "✅ OK" : "❌ FALLÓ");
+      if (res.ok) {
+        const d = await res.json();
+        console.log("Muestras cargadas:", d.length);
+      }
+    } catch (e) {
+      console.error("Error al descargar sample:", e);
+    }
+    console.log("Reporte activo:", activeReport);
+    if (activeReport) {
+      const summary = summarize(activeReport);
+      console.log("Puntos GNSS calculados para el gráfico:", summary.gnssRows.length);
+      console.log("Columnas Kp:", activeReport.noaa?.rows?.length);
+    }
+    console.log("Forzando actualización limpia...");
+    await refreshReport();
+    console.log("=== DIAGNÓSTICO FINALIZADO ===");
+  },
+  async resetAll() {
+    console.log("Limpiando cachés y base de datos local...");
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      for (const k of keys) await caches.delete(k);
+    }
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) await r.unregister();
+    }
+    await clearReports();
+    localStorage.removeItem(PROXY_KEY);
+    window.location.reload();
+  }
+};
 
 initialize();
