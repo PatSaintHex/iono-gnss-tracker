@@ -232,7 +232,8 @@ footer { min-height: 52px; display: flex; justify-content: space-between; gap: 1
 .guide-alert-box { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; padding: 11px 14px; border-left: 4px solid var(--red); background: #fff1ef; border-radius: 0 3px 3px 0; }
 .guide-alert-box svg { flex: 0 0 22px; width: 22px; height: 22px; fill: none; stroke: var(--red); stroke-width: 2; margin-top: 1px; }
 .guide-alert-box div { font-size: 12px; line-height: 1.5; color: #5c261e; }
-.guide-alert-box strong { display: block; margin-bottom: 2px; color: #9c2a1c; font-size: 12.5px; }
+.guide-alert-box > div > strong:first-child { display: block; margin-bottom: 2px; color: #9c2a1c; font-size: 12.5px; }
+.guide-alert-box span strong { display: inline; color: #7d1c10; font-weight: 700; }
 
 /* Footer de Bienvenida */
 .welcome-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
@@ -249,8 +250,10 @@ footer { min-height: 52px; display: flex; justify-content: space-between; gap: 1
 /* Banner de Aceptación Automática */
 .legal-acceptance-banner { display: flex; gap: 14px; align-items: flex-start; margin: 16px 0 20px; padding: 14px 16px; border: 1px solid #e2a84b; border-left: 5px solid #c78a24; background: #fff9ed; border-radius: 3px; }
 .legal-acceptance-banner svg { flex: 0 0 24px; width: 24px; height: 24px; fill: none; stroke: #a36b13; stroke-width: 2; margin-top: 1px; }
-.legal-acceptance-banner div { font-size: 12.5px; line-height: 1.55; color: #4b3612; }
-.legal-acceptance-banner strong { display: block; margin-bottom: 3px; color: #7b4f08; font-size: 12.5px; letter-spacing: 0.3px; }
+.legal-banner-content { flex: 1; }
+.legal-banner-title { display: block; margin-bottom: 5px; color: #7b4f08; font-size: 12.5px; font-weight: 700; letter-spacing: 0.3px; }
+.legal-banner-text { margin: 0; font-size: 12.5px; line-height: 1.55; color: #4b3612; }
+.legal-banner-text strong { display: inline; font-weight: 700; color: #6d4204; }
 
 .legal-sections { display: grid; gap: 16px; margin-bottom: 22px; }
 .legal-card { padding: 16px 18px; border: 1px solid var(--line); border-radius: 3px; background: #fbfdfc; }
