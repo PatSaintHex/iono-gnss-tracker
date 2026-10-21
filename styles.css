@@ -43,6 +43,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .legal-button { height: 36px; padding: 0 11px 0 9px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #bf8a32; border-radius: 18px; background: #3c3218; color: #faebd0; font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
 .legal-button:hover { background: #52421c; border-color: #f7bf57; color: #ffffff; }
 .legal-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lang-button { height: 36px; padding: 0 10px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #7ebcb2; border-radius: 18px; background: #1c4554; color: #e5f4f1; font-family: var(--body); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all .15s ease; }
+.lang-button:hover { background: #28596c; border-color: #b3ebe2; color: #ffffff; }
+.lang-button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lang-button .lang-opt { opacity: 0.55; transition: opacity .15s ease, color .15s ease; }
+.lang-button .lang-opt.active { opacity: 1; color: #fbd36e; font-weight: 800; }
+.lang-button .lang-sep { opacity: 0.35; font-size: 10px; }
 
 main { max-width: 1380px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 58px) 48px; }
 .masthead { min-height: 192px; display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 27px 0 30px; border-bottom: 1px solid var(--line); }
@@ -325,6 +331,8 @@ footer { min-height: 52px; display: flex; justify-content: space-between; gap: 1
   .help-button svg { width: 14px; height: 14px; }
   .legal-button { height: 32px; padding: 0 8px; font-size: 10px; gap: 4px; }
   .legal-button svg { width: 14px; height: 14px; }
+  .lang-button { height: 32px; padding: 0 8px; font-size: 10px; gap: 4px; }
+  .lang-button svg { width: 13px; height: 13px; }
   .icon-button { width: 32px; height: 32px; flex: 0 0 32px; }
   .icon-button svg { width: 15px; height: 15px; }
   .welcome-dialog { width: calc(100% - 16px); }
@@ -352,6 +360,8 @@ footer { min-height: 52px; display: flex; justify-content: space-between; gap: 1
   .brand-light { display: none; }
   .help-button span, .legal-button span { display: none; }
   .help-button, .legal-button { width: 32px; height: 32px; flex: 0 0 32px; padding: 0; justify-content: center; }
+  .lang-button { height: 32px; padding: 0 6px; font-size: 10px; }
+  .lang-button svg { display: none; }
   .summary-content { grid-template-columns: 1fr; }
   .event-columns { grid-template-columns: 1fr; }
   .chart-frame { height: 235px; }

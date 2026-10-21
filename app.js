@@ -1,4 +1,5 @@
 import { clearReports, deleteSiteReports, listAllReports, listReports, saveReport } from "./storage.js";
+import { LANG_KEY, detectLanguage, t } from "./i18n.js";
 
 const SITE_KEY = "geoionosfera-sites-v4";
 const SELECTED_SITE_KEY = "geoionosfera-selected-site-v4";
@@ -67,7 +68,7 @@ const NOAA_URL = "https://services.swpc.noaa.gov/text/3-day-forecast.txt";
 const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15-18UT", "18-21UT", "21-00UT"];
 
 const elements = Object.fromEntries([
-  "connection-status", "country-select", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
+  "connection-status", "lang-toggle-button", "country-select", "site-select", "site-coordinates", "manage-sites", "refresh-button", "install-button",
   "help-button", "welcome-dialog", "close-welcome", "dismiss-welcome", "remember-welcome",
   "legal-button", "legal-dialog", "close-legal", "dismiss-legal", "footer-legal-button",
   "report-period", "updated-at", "freshness", "notice", "summary-content", "ionosphere-chart", "chart-empty",
@@ -77,6 +78,8 @@ const elements = Object.fromEntries([
   "clear-history", "catalog-count", "sites-map", "map-search-input", "map-search-btn", "map-search-results"
 ].map((id) => [id, document.getElementById(id)]));
 
+let currentLang = detectLanguage();
+let isStaleReport = false;
 let sites = loadSites();
 let selectedSiteId = localStorage.getItem(SELECTED_SITE_KEY) || sites[0].id;
 let activeReport = null;
@@ -158,11 +161,13 @@ function utcStartOfLocalDate(dateString, timezone) {
 
 function dateLabel(dateString, timezone, options = { day: "2-digit", month: "short" }) {
   const date = new Date(`${dateString}T12:00:00Z`);
-  return new Intl.DateTimeFormat("es-PE", { ...options, timeZone: timezone }).format(date);
+  const locale = currentLang === "en" ? "en-US" : "es-PE";
+  return new Intl.DateTimeFormat(locale, { ...options, timeZone: timezone }).format(date);
 }
 
 function timeLabel(date, timezone) {
-  return new Intl.DateTimeFormat("es-PE", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
+  const locale = currentLang === "en" ? "en-US" : "es-PE";
+  return new Intl.DateTimeFormat(locale, { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
 }
 
 function escapeHtml(value) {
@@ -180,9 +185,89 @@ function clearNotice() {
   elements.notice.textContent = "";
 }
 
-function setConnection(state, label) {
+function setConnection(state, labelKeyOrText) {
   elements["connection-status"].className = `connection-status ${state}`;
-  elements["connection-status"].lastElementChild.textContent = label;
+  const translated = t(labelKeyOrText, currentLang);
+  elements["connection-status"].lastElementChild.textContent = translated !== labelKeyOrText ? translated : labelKeyOrText;
+}
+
+function updateLangButton() {
+  const btn = elements["lang-toggle-button"];
+  if (!btn) return;
+  const esSpan = btn.querySelector(".lang-opt-es");
+  const enSpan = btn.querySelector(".lang-opt-en");
+  if (esSpan && enSpan) {
+    if (currentLang === "en") {
+      esSpan.classList.remove("active");
+      enSpan.classList.add("active");
+      btn.title = "Cambiar a Español";
+      btn.setAttribute("aria-label", "Cambiar a Español");
+    } else {
+      esSpan.classList.add("active");
+      enSpan.classList.remove("active");
+      btn.title = "Switch to English";
+      btn.setAttribute("aria-label", "Switch to English");
+    }
+  }
+}
+
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.dataset.i18n;
+    const translated = t(key, currentLang);
+    if (translated) el.textContent = translated;
+  });
+
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+    const key = el.dataset.i18nHtml;
+    const translated = t(key, currentLang);
+    if (translated) el.innerHTML = translated;
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.dataset.i18nPlaceholder;
+    const translated = t(key, currentLang);
+    if (translated) el.placeholder = translated;
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.dataset.i18nTitle;
+    const translated = t(key, currentLang);
+    if (translated) el.title = translated;
+  });
+
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const key = el.dataset.i18nAria;
+    const translated = t(key, currentLang);
+    if (translated) el.setAttribute("aria-label", translated);
+  });
+
+  if (elements["site-country"]) {
+    const options = elements["site-country"].options;
+    for (let i = 0; i < options.length; i++) {
+      const code = options[i].value;
+      const meta = COUNTRY_METAS[code] || { flag: "🌐" };
+      const name = t(`country.${code}`, currentLang) || meta.name || code;
+      options[i].textContent = `${meta.flag} ${name}`;
+    }
+  }
+
+  updateLangButton();
+}
+
+function toggleLanguage() {
+  const newLang = currentLang === "es" ? "en" : "es";
+  currentLang = newLang;
+  localStorage.setItem(LANG_KEY, newLang);
+  applyI18n();
+  renderSites();
+  renderSiteList();
+  if (activeReport) {
+    renderReport(activeReport, isStaleReport);
+  }
+  renderHistory(selectedSiteId);
 }
 
 function siteDisplayName(site) {
@@ -208,7 +293,8 @@ function renderSites() {
   if (elements["country-select"]) {
     elements["country-select"].innerHTML = sortedCountries.map((code) => {
       const meta = COUNTRY_METAS[code] || { flag: "📍", name: code };
-      return `<option value="${escapeHtml(code)}">${meta.flag} ${escapeHtml(meta.name)}</option>`;
+      const countryName = t(`country.${code}`, currentLang) || meta.name;
+      return `<option value="${escapeHtml(code)}">${meta.flag} ${escapeHtml(countryName)}</option>`;
     }).join("");
     elements["country-select"].value = currentCountry;
   }
@@ -347,12 +433,14 @@ function summarize(report) {
   });
   const coincident = scintEvents.some((scint) => storms.some((storm) => scint.start < storm.end && scint.end > storm.start));
   const predictedRows = visibleGnss.filter((row) => row.predicted === true).length;
-  let conclusion = "Actividad ionosférica estable en los umbrales seleccionados.";
-  if (storms.length && scintEvents.length && coincident) conclusion = "Se observan intervalos de centelleo que coinciden temporalmente con Kp de tormenta. La coincidencia no demuestra causalidad.";
-  else if (storms.length && scintEvents.length) conclusion = "Se observaron eventos geomagnéticos y de centelleo en intervalos diferentes.";
-  else if (storms.length) conclusion = "Hay intervalos de pronóstico geomagnético Kp ≥ 5; no se detectó centelleo significativo coincidente en los datos disponibles.";
-  else if (scintEvents.length) conclusion = "Se detectaron intervalos de centelleo > 1 sin alerta geomagnética Kp ≥ 5 en el período.";
-  return { gnssRows: visibleGnss, scintEvents, storms, predictedRows, conclusion };
+
+  let conclusionKey = "conclusion.stable";
+  if (storms.length && scintEvents.length && coincident) conclusionKey = "conclusion.coincident";
+  else if (storms.length && scintEvents.length) conclusionKey = "conclusion.both_different";
+  else if (storms.length) conclusionKey = "conclusion.storm_only";
+  else if (scintEvents.length) conclusionKey = "conclusion.scint_only";
+
+  return { gnssRows: visibleGnss, scintEvents, storms, predictedRows, conclusion: t(conclusionKey, currentLang), conclusionKey };
 }
 
 function localKpRows(report) {
@@ -361,21 +449,40 @@ function localKpRows(report) {
 
 function renderReport(report, stale = false) {
   activeReport = report;
+  isStaleReport = stale;
   const site = report.site;
   const result = summarize(report);
+  const locale = currentLang === "en" ? "en-US" : "es-PE";
   elements["site-coordinates"].textContent = `${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${site.timezone}`;
   elements["report-period"].textContent = `${dateLabel(report.rangeStart, site.timezone)} — ${dateLabel(report.rangeEnd, site.timezone)}`;
-  elements["updated-at"].textContent = new Intl.DateTimeFormat("es-PE", { dateStyle: "medium", timeStyle: "short" }).format(new Date(report.savedAt));
-  elements.freshness.textContent = stale ? "COPIA LOCAL" : "ACTUALIZADO";
+  elements["updated-at"].textContent = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(report.savedAt));
+  elements.freshness.textContent = stale ? t("freshness.stale", currentLang) : t("freshness.fresh", currentLang);
   elements.freshness.className = `freshness${stale ? " stale" : ""}`;
-  elements["storm-badge"].textContent = result.storms.length ? `${result.storms.length} intervalo${result.storms.length === 1 ? "" : "s"} G` : "Sin alerta G";
+  elements["storm-badge"].textContent = result.storms.length
+    ? t("forecast.storm_badge", currentLang, { count: result.storms.length, s: result.storms.length === 1 ? "" : "s" })
+    : t("forecast.no_alert", currentLang);
   elements["storm-badge"].className = `storm-badge${result.storms.length ? " alert" : ""}`;
 
+  const stormTitle = t("summary.geomagnetic", currentLang);
+  const stormValue = result.storms.length ? `G${Math.max(...result.storms.map((event) => Math.max(1, Math.min(5, Math.floor(event.max) - 4))))} · Kp ≥ 5` : "Kp < 5";
+  const stormNote = result.storms.length ? t("summary.storm_intervals", currentLang, { count: result.storms.length }) : t("summary.no_storm", currentLang);
+
+  const scintTitle = t("summary.scintillation", currentLang);
+  const scintValue = result.scintEvents.length ? t("summary.scint_events", currentLang, { count: result.scintEvents.length }) : t("summary.no_scint", currentLang);
+  const scintNote = result.scintEvents.length ? t("summary.scint_max", currentLang, { val: Math.max(...result.scintEvents.map((event) => event.max)).toFixed(2) }) : t("summary.scint_threshold", currentLang);
+
+  const gnssTitle = t("summary.gnss_data", currentLang);
+  const gnssValue = t("summary.gnss_samples", currentLang, { count: result.gnssRows.length });
+  const gnssNote = result.predictedRows ? t("summary.gnss_predicted", currentLang, { count: result.predictedRows }) : t("summary.gnss_period_samples", currentLang);
+
+  const conclusionLabel = t("summary.conclusion_label", currentLang);
+  const conclusionText = t(result.conclusionKey, currentLang);
+
   elements["summary-content"].innerHTML = `
-    <article class="summary-item ${result.storms.length ? "alert" : ""}"><h3>Actividad geomagnética</h3><strong>${result.storms.length ? `G${Math.max(...result.storms.map((event) => Math.max(1, Math.min(5, Math.floor(event.max) - 4))))} · Kp ≥ 5` : "Kp < 5"}</strong><p>${result.storms.length ? `${result.storms.length} intervalo(s) en el período` : "Sin alerta NOAA G detectada"}</p></article>
-    <article class="summary-item ${result.scintEvents.length ? "warn" : ""}"><h3>Centelleo significativo</h3><strong>${result.scintEvents.length ? `${result.scintEvents.length} evento(s)` : "Sin eventos"}</strong><p>${result.scintEvents.length ? `Máximo ${Math.max(...result.scintEvents.map((event) => event.max)).toFixed(2)}` : "Umbral de observación: > 1"}</p></article>
-    <article class="summary-item"><h3>Datos GNSS</h3><strong>${result.gnssRows.length} muestras</strong><p>${result.predictedRows ? `${result.predictedRows} estimadas` : "Muestras del período"}</p></article>
-    <p class="conclusion"><strong>Conclusión:</strong> ${escapeHtml(result.conclusion)}</p>`;
+    <article class="summary-item ${result.storms.length ? "alert" : ""}"><h3>${escapeHtml(stormTitle)}</h3><strong>${escapeHtml(stormValue)}</strong><p>${escapeHtml(stormNote)}</p></article>
+    <article class="summary-item ${result.scintEvents.length ? "warn" : ""}"><h3>${escapeHtml(scintTitle)}</h3><strong>${escapeHtml(scintValue)}</strong><p>${escapeHtml(scintNote)}</p></article>
+    <article class="summary-item"><h3>${escapeHtml(gnssTitle)}</h3><strong>${escapeHtml(gnssValue)}</strong><p>${escapeHtml(gnssNote)}</p></article>
+    <p class="conclusion"><strong>${escapeHtml(conclusionLabel)}</strong> ${escapeHtml(conclusionText)}</p>`;
 
   renderKp(report);
   renderEvents(elements["scint-events"], result.scintEvents, "max");
@@ -481,7 +588,7 @@ function renderKp(report) {
 
 function renderEvents(list, events, valueLabel) {
   if (!events.length) {
-    list.innerHTML = '<li class="empty-state">No se detectaron eventos sobre el umbral.</li>';
+    list.innerHTML = `<li class="empty-state">${t("events.none_detected", currentLang)}</li>`;
     return;
   }
   list.innerHTML = events.slice(0, 12).map((event) => `<li><span>${escapeHtml(event.startText)}–${escapeHtml(event.endText)}</span><span>${escapeHtml(Number(event[valueLabel]).toFixed(2))}</span></li>`).join("");
@@ -548,7 +655,7 @@ function drawChart(report, rows) {
   context.fillStyle = "#197a8c";
   context.font = "bold 9px Segoe UI, sans-serif";
   context.textAlign = "left";
-  context.fillText("TEC (TECU) · Centelleo (%)", margin.left - 4, margin.top - 9);
+  context.fillText(t("chart.y_left_label", currentLang), margin.left - 4, margin.top - 9);
 
   // Línea guía Kp 5 (Umbral Tormenta G1)
   const pyKp5 = margin.top + plotHeight - kpHeight(5);
@@ -563,7 +670,7 @@ function drawChart(report, rows) {
   context.fillStyle = "#a86800";
   context.font = "bold 9px Segoe UI, sans-serif";
   context.textAlign = "right";
-  context.fillText("Umbral Tormenta G1 (Kp ≥ 5)", width - margin.right - 8, pyKp5 - 4);
+  context.fillText(t("chart.g1_threshold", currentLang), width - margin.right - 8, pyKp5 - 4);
   context.restore();
 
   // 2. Separadores verticales de días (medianoche UTC)
@@ -677,7 +784,7 @@ function drawChart(report, rows) {
   context.fillStyle = "#635028";
   context.font = "bold 9px Segoe UI, sans-serif";
   context.textAlign = "right";
-  context.fillText("Kp · Alerta G", width - 8, margin.top - 9);
+  context.fillText(t("chart.y_right_label", currentLang), width - 8, margin.top - 9);
 
   // 5. Curvas GNSS (TEC y Centelleo, dibujadas SOBRE las columnas)
   if (valid.length > 0) {
@@ -763,7 +870,7 @@ async function refreshReport() {
   const id = `${site.id}:${rangeStart}:${rangeEnd}`;
   const cached = await listReports(site.id, 1).catch(() => []);
   if (cached.length) renderReport(cached[0], true);
-  setConnection("", "Actualizando");
+  setConnection("", t("status.updating", currentLang));
 
   try {
     const [noaa, dayResults] = await Promise.all([
@@ -782,17 +889,17 @@ async function refreshReport() {
     renderReport(report);
     await saveReport(report);
     await renderHistory(site.id);
-    setConnection(failedDays ? "offline" : "online", failedDays ? "Datos parciales" : "En línea");
-    if (failedDays) showNotice("No se actualizaron todos los días de GNSSPlanning. Se muestran datos guardados cuando estaban disponibles.", "error");
-    else showNotice("Pronóstico NOAA y datos GNSS actualizados.", "success");
+    setConnection(failedDays ? "offline" : "online", failedDays ? t("status.partial", currentLang) : t("status.online", currentLang));
+    if (failedDays) showNotice(t("notice.data_partial", currentLang), "error");
+    else showNotice(t("notice.data_updated", currentLang), "success");
   } catch (error) {
-    setConnection("offline", navigator.onLine ? "Fuente no disponible" : "Sin conexión");
+    setConnection("offline", navigator.onLine ? t("status.unavailable", currentLang) : t("status.offline", currentLang));
     if (cached.length) {
       renderReport(cached[0], true);
-      showNotice(`No se pudo actualizar. Se conserva el último informe local. ${error.message}`, "error");
+      showNotice(t("notice.update_failed_cached", currentLang, { error: error.message }), "error");
     } else {
-      elements["summary-content"].innerHTML = '<p class="empty-state">No hay consulta guardada. Conéctate para cargar el primer reporte.</p>';
-      showNotice(`No se pudieron obtener los datos: ${error.message}`, "error");
+      elements["summary-content"].innerHTML = `<p class="empty-state">${t("summary.empty_cache", currentLang)}</p>`;
+      showNotice(t("notice.update_failed", currentLang, { error: error.message }), "error");
     }
   } finally {
     refreshInProgress = false;
@@ -804,15 +911,16 @@ async function renderHistory(siteId) {
   const reports = await listReports(siteId, 12).catch(() => []);
   elements["history-count"].textContent = String(reports.length);
   if (!reports.length) {
-    elements["history-list"].innerHTML = '<p class="empty-state">Todavía no hay consultas guardadas en este navegador.</p>';
+    elements["history-list"].innerHTML = `<p class="empty-state">${t("history.none_yet", currentLang)}</p>`;
     return;
   }
-  elements["history-list"].innerHTML = reports.map((report) => `<button class="history-entry" type="button" data-report-id="${escapeHtml(report.id)}"><span><strong>${escapeHtml(report.site.name)}</strong><span>${escapeHtml(dateLabel(report.rangeStart, report.site.timezone))} — ${escapeHtml(dateLabel(report.rangeEnd, report.site.timezone))}</span></span><span>${escapeHtml(new Intl.DateTimeFormat("es-PE", { hour: "2-digit", minute: "2-digit" }).format(new Date(report.savedAt)))}</span></button>`).join("");
+  const locale = currentLang === "en" ? "en-US" : "es-PE";
+  elements["history-list"].innerHTML = reports.map((report) => `<button class="history-entry" type="button" data-report-id="${escapeHtml(report.id)}"><span><strong>${escapeHtml(report.site.name)}</strong><span>${escapeHtml(dateLabel(report.rangeStart, report.site.timezone))} — ${escapeHtml(dateLabel(report.rangeEnd, report.site.timezone))}</span></span><span>${escapeHtml(new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(new Date(report.savedAt)))}</span></button>`).join("");
   elements["history-list"].querySelectorAll("[data-report-id]").forEach((button) => {
     button.addEventListener("click", async () => {
       const all = await listReports(siteId, 60);
       const report = all.find((item) => item.id === button.dataset.reportId);
-      if (report) { renderReport(report, true); showNotice("Mostrando la copia local guardada en este dispositivo."); }
+      if (report) { renderReport(report, true); showNotice(t("notice.showing_local", currentLang)); }
     });
   });
 }
@@ -855,12 +963,15 @@ function initOrUpdateMap() {
       });
 
       const isCurrent = site.id === selectedSiteId;
+      const popupBtnText = isCurrent
+        ? (currentLang === "en" ? "✓ Active operation" : "✓ Operación activa")
+        : t("sites_dialog.popup_select", currentLang);
       const popupHtml = `
         <div>
           <strong>${flag} ${escapeHtml(site.name)}</strong>
           <small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small>
           <button type="button" class="map-popup-btn" onclick="window.selectSiteFromMap('${escapeHtml(site.id)}')">
-            ${isCurrent ? "✓ Operación activa" : "Seleccionar y Monitorear"}
+            ${popupBtnText}
           </button>
         </div>
       `;
@@ -941,17 +1052,17 @@ async function searchLocation(query) {
   if (!trimmed) return;
   const resultsBox = elements["map-search-results"];
   resultsBox.hidden = false;
-  resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #555;">Buscando en Sudamérica (OpenStreetMap)…</div>';
+  resultsBox.innerHTML = `<div style="padding: 8px 10px; font-size: 11px; color: #555;">${t("sites_dialog.search_searching", currentLang)}</div>`;
 
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&countrycodes=pe,cl,bo,br,co,ec,ar&limit=6`;
     const res = await fetch(url, {
-      headers: { "Accept-Language": "es" }
+      headers: { "Accept-Language": currentLang }
     });
     if (!res.ok) throw new Error("Error en servicio de mapas");
     const data = await res.json();
     if (!data.length) {
-      resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #888;">No se encontraron resultados para esta búsqueda.</div>';
+      resultsBox.innerHTML = `<div style="padding: 8px 10px; font-size: 11px; color: #888;">${t("sites_dialog.search_no_results", currentLang)}</div>`;
       return;
     }
 
@@ -972,7 +1083,7 @@ async function searchLocation(query) {
       });
     });
   } catch {
-    resultsBox.innerHTML = '<div style="padding: 8px 10px; font-size: 11px; color: #a34134;">No se pudo conectar con el buscador geográfico.</div>';
+    resultsBox.innerHTML = `<div style="padding: 8px 10px; font-size: 11px; color: #a34134;">${t("sites_dialog.search_no_results", currentLang)}</div>`;
   }
 }
 
@@ -988,9 +1099,9 @@ function renderSiteList() {
           <small>${Number(site.lat).toFixed(4)}, ${Number(site.lon).toFixed(4)} · ${escapeHtml(site.timezone)}</small>
         </div>
         <div class="site-row-actions">
-          <button type="button" data-locate="${escapeHtml(site.id)}" title="Ver en el mapa">Ubicar</button>
-          <button type="button" data-edit="${escapeHtml(site.id)}">Editar</button>
-          <button type="button" data-delete="${escapeHtml(site.id)}">Eliminar</button>
+          <button type="button" data-locate="${escapeHtml(site.id)}" title="${escapeHtml(t("sites_dialog.action_locate", currentLang))}">${escapeHtml(t("sites_dialog.action_locate", currentLang))}</button>
+          <button type="button" data-edit="${escapeHtml(site.id)}">${escapeHtml(t("sites_dialog.action_edit", currentLang))}</button>
+          <button type="button" data-delete="${escapeHtml(site.id)}">${escapeHtml(t("sites_dialog.action_delete", currentLang))}</button>
         </div>
       </div>
     `;
@@ -1026,7 +1137,7 @@ function editSite(id) {
   elements["site-lat"].value = site.lat;
   elements["site-lon"].value = site.lon;
   elements["site-timezone"].value = site.timezone;
-  elements["form-legend"].textContent = "Editar operación";
+  elements["form-legend"].textContent = t("sites_dialog.legend_edit", currentLang);
   elements["cancel-edit"].hidden = false;
   elements["site-name"].focus();
   if (leafletMap) {
@@ -1040,7 +1151,7 @@ function resetSiteForm() {
   if (elements["site-country"]) elements["site-country"].value = "PE";
   if (elements["site-region"]) elements["site-region"].value = "";
   elements["site-timezone"].value = "America/Lima";
-  elements["form-legend"].textContent = "Agregar nueva operación";
+  elements["form-legend"].textContent = t("sites_dialog.legend_add", currentLang);
   elements["cancel-edit"].hidden = true;
   if (clickPinMarker && leafletMap) {
     leafletMap.removeLayer(clickPinMarker);
@@ -1049,8 +1160,8 @@ function resetSiteForm() {
 }
 
 async function removeSite(id) {
-  if (sites.length < 2) { showNotice("Debe quedar al menos una ubicación configurada.", "error"); return; }
-  if (!window.confirm("¿Eliminar esta ubicación y sus consultas guardadas en este dispositivo?")) return;
+  if (sites.length < 2) { showNotice(t("notice.min_sites_required", currentLang), "error"); return; }
+  if (!window.confirm(t("notice.delete_site_confirm", currentLang))) return;
   sites = sites.filter((site) => site.id !== id);
   saveSites();
   if (selectedSiteId === id) selectedSiteId = sites[0].id;
@@ -1067,7 +1178,7 @@ function exportLocalData() {
     link.download = "geoionosfera-datos-locales.json";
     link.click();
     URL.revokeObjectURL(link.href);
-  }).catch(() => showNotice("No se pudo exportar el historial local.", "error"));
+  }).catch(() => showNotice(t("notice.export_failed", currentLang), "error"));
 }
 
 function wireEvents() {
@@ -1136,7 +1247,7 @@ function wireEvents() {
       lon: Number(elements["site-lon"].value),
       timezone: elements["site-timezone"].value.trim()
     };
-    try { new Intl.DateTimeFormat("en", { timeZone: site.timezone }); } catch { showNotice("Ingresá una zona horaria IANA válida, por ejemplo America/Lima o America/Santiago.", "error"); return; }
+    try { new Intl.DateTimeFormat("en", { timeZone: site.timezone }); } catch { showNotice(t("notice.invalid_tz", currentLang), "error"); return; }
     if (editId) sites = sites.map((item) => item.id === editId ? site : item);
     else sites.push(site);
     saveSites(); selectedSiteId = site.id; localStorage.setItem(SELECTED_SITE_KEY, selectedSiteId);
@@ -1144,12 +1255,13 @@ function wireEvents() {
   });
   elements["export-data"].addEventListener("click", exportLocalData);
   elements["clear-history"].addEventListener("click", async () => {
-    if (!window.confirm("¿Borrar todas las consultas guardadas en este navegador?")) return;
-    await clearReports(); await renderHistory(selectedSiteId); showNotice("Consultas locales eliminadas.", "success");
+    if (!window.confirm(t("notice.clear_history_confirm", currentLang))) return;
+    await clearReports(); await renderHistory(selectedSiteId); showNotice(t("notice.queries_cleared", currentLang), "success");
   });
+  elements["lang-toggle-button"]?.addEventListener("click", toggleLanguage);
   window.addEventListener("resize", () => { if (activeReport) drawChart(activeReport, summarize(activeReport).gnssRows); });
-  window.addEventListener("online", () => { setConnection("online", "En línea"); });
-  window.addEventListener("offline", () => { setConnection("offline", "Sin conexión"); });
+  window.addEventListener("online", () => { setConnection("online", t("status.online", currentLang)); });
+  window.addEventListener("offline", () => { setConnection("offline", t("status.offline", currentLang)); });
 
   const closeWelcome = () => {
     if (elements["remember-welcome"]?.checked) {
@@ -1186,7 +1298,7 @@ function setupInstall() {
     event.preventDefault(); installPrompt = event; elements["install-button"].hidden = false;
   });
   elements["install-button"].addEventListener("click", async () => {
-    if (!installPrompt) { showNotice("En iPhone o iPad, usa Compartir en Safari y elige Agregar a pantalla de inicio."); return; }
+    if (!installPrompt) { showNotice(t("notice.ios_install_hint", currentLang)); return; }
     installPrompt.prompt();
     await installPrompt.userChoice;
     installPrompt = null;
@@ -1203,9 +1315,10 @@ function setupInstall() {
 }
 
 async function initialize() {
+  applyI18n();
   renderSites(); wireEvents(); setupInstall();
   await renderHistory(selectedSiteId);
-  if (!("indexedDB" in window)) showNotice("Este navegador no permite almacenamiento local. El historial no estará disponible.", "error");
+  if (!("indexedDB" in window)) showNotice(t("notice.indexeddb_missing", currentLang), "error");
 
   const welcomeDismissed = localStorage.getItem(WELCOME_DISMISSED_KEY) === "true";
   if (elements["remember-welcome"]) elements["remember-welcome"].checked = welcomeDismissed;

@@ -1,9 +1,10 @@
-const CACHE_NAME = "geoionosfera-shell-v2";
+const CACHE_NAME = "geoionosfera-shell-v3";
 const APP_FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./i18n.js",
   "./storage.js",
   "./manifest.webmanifest",
   "./icons/ionosphere.svg",
