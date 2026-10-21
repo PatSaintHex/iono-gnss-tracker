@@ -137,7 +137,7 @@ h2 { font-size: 27px; color: var(--deep); }
 footer { min-height: 52px; display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 0 clamp(18px, 4vw, 58px); background: #e7ece8; color: #65767a; font-size: 10px; }
 footer span:first-child { font-family: var(--display); color: var(--deep); font-size: 15px; font-weight: 600; }
 
-.sites-dialog { width: min(980px, calc(100% - 24px)); max-height: min(92vh, 880px); padding: 22px 24px; border: 0; box-shadow: 0 18px 70px #122e3a38; color: var(--ink); border-radius: 4px; }
+.sites-dialog { width: min(980px, calc(100% - 24px)); max-height: min(92vh, 880px); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 22px 24px; border: 0; box-shadow: 0 18px 70px #122e3a38; color: var(--ink); border-radius: 4px; }
 .sites-dialog::backdrop { background: #102f3a99; backdrop-filter: blur(2px); }
 .dialog-heading { display: flex; justify-content: space-between; align-items: center; }
 .dialog-heading h2 { font-size: 26px; }
@@ -188,10 +188,10 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
 .map-popup-btn:hover { background: var(--deep-2); }
 
 @media (max-width: 820px) {
-  .sites-dialog { width: calc(100% - 16px); padding: 18px 16px; }
+  .sites-dialog { width: calc(100% - 16px); padding: 18px 14px; max-height: 94vh; }
   .sites-modal-layout { grid-template-columns: 1fr; gap: 16px; }
-  .sites-map { height: 280px; min-height: 240px; }
-  .catalog-column { max-height: none; }
+  .sites-map { height: 260px; min-height: 220px; }
+  .catalog-column { max-height: none; overflow-y: visible; }
 }
 
 /* Modal de Bienvenida y Guía Didáctica */
@@ -206,6 +206,7 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
 .tag-kp { background: #fee8c8; color: #a65600; border: 1px solid #f8bb75; }
 .tag-tec { background: #d9edf2; color: #0f6373; border: 1px solid #99cdd8; }
 .tag-scint { background: #fde8e5; color: #af382b; border: 1px solid #f29c91; }
+.tag-geo { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
 .guide-card-body p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: #32474d; }
 .guide-card-body p:last-child { margin-bottom: 0; }
 .guide-highlight { padding: 7px 11px; border-left: 3px solid var(--teal); background: #eef6f5; color: #1e454b; font-size: 12px; }
@@ -273,6 +274,12 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
   .welcome-container { padding: 16px 14px; }
   .guide-card { padding: 13px 12px; }
   .guide-card-header h3 { font-size: 16px; }
+  .sites-dialog { padding: 16px 12px; }
+  .form-row-2 { grid-template-columns: 1fr; gap: 8px; }
+  .coordinate-fields { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .site-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .site-row-actions { width: 100%; justify-content: flex-end; }
+  .dialog-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 
 @media (max-width: 420px) {
@@ -281,5 +288,7 @@ footer span:first-child { font-family: var(--display); color: var(--deep); font-
   .summary-content { grid-template-columns: 1fr; }
   .event-columns { grid-template-columns: 1fr; }
   .chart-frame { height: 235px; }
-  .sites-dialog { padding: 17px; }
+  .sites-dialog { padding: 14px 10px; }
+  .sites-map { height: 230px; min-height: 200px; }
+  .coordinate-fields { grid-template-columns: 1fr; }
 }

@@ -755,7 +755,8 @@ function initOrUpdateMap() {
     leafletMap = L.map(elements["sites-map"], {
       center: [-19.5, -70.5],
       zoom: 5,
-      zoomControl: true
+      zoomControl: true,
+      tap: false
     });
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {

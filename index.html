@@ -122,7 +122,94 @@
       </div>
     </div>
   </dialog>
-  <dialog id="welcome-dialog" class="welcome-dialog" aria-labelledby="welcome-title"><div class="welcome-container"><div class="dialog-heading"><div><p class="eyebrow">GUÍA DE OBSERVACIÓN · CLIMA ESPACIAL Y GNSS</p><h2 id="welcome-title">Bienvenido a GeoIonosfera</h2></div><button id="close-welcome" class="icon-button" type="button" title="Cerrar" aria-label="Cerrar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg></button></div><p class="dialog-note">Guía esencial para comprender los parámetros geomagnéticos e ionosféricos y su impacto en posicionamiento satelital de alta precisión.</p><div class="guide-sections"><article class="guide-card"><div class="guide-card-header"><span class="guide-tag tag-kp">GEOMAGNETISMO</span><h3>1. Índice Kp y Alertas NOAA (G1 a G5)</h3></div><div class="guide-card-body"><p><strong>¿De dónde proviene?</strong> Procede del <em>NOAA Space Weather Prediction Center (SWPC)</em> en EE.UU. Mide perturbaciones globales en el campo magnético de la Tierra cada 3 horas, causadas por el viento solar o eyecciones de masa coronal (CME).</p><p><strong>¿Cómo interpretarlo?</strong> Valores de 0 a 4 indican calma geomagnética. Al alcanzar <strong>Kp ≥ 5</strong>, NOAA emite oficialmente una <strong>alerta de tormenta geomagnética (Escala G)</strong>.</p><div class="guide-scale-bar"><div class="scale-box box-k0"><span>Kp &lt; 5</span><small>Calmo</small></div><div class="scale-box box-k1"><span>Kp = 5 (G1)</span><small>Menor</small></div><div class="scale-box box-k2"><span>Kp = 6 (G2)</span><small>Moderada</small></div><div class="scale-box box-k3"><span>Kp = 7 (G3)</span><small>Fuerte</small></div><div class="scale-box box-k4"><span>Kp = 8, 9- (G4)</span><small>Severa</small></div><div class="scale-box box-k5"><span>Kp = 9o (G5)</span><small>Extrema</small></div></div></div></article><article class="guide-card"><div class="guide-card-header"><span class="guide-tag tag-tec">IONOSFERA</span><h3>2. TEC (Total Electron Content - Contenido Total de Electrones)</h3></div><div class="guide-card-body"><p><strong>¿Qué es?</strong> Es la cantidad total de electrones libres en una columna de 1 m² que atraviesa la ionosfera entre el satélite y el receptor en tierra. Representa la densidad del plasma ionizado.</p><p><strong>¿Cómo leerlo en la gráfica?</strong> Se representa con la <em>curva azul sólida</em>. Muestra un ciclo diurno natural: asciende de día debido a la radiación solar incidente (alcanzando su máximo hacia el mediodía o primeras horas de la tarde local) y decae drásticamente durante la noche.</p><p class="guide-highlight"><strong>Impacto GNSS:</strong> Niveles altos o variaciones abruptas de TEC provocan retrasos y refracción en la señal, aumentando el error ionosférico residual que deben corregir los receptores GNSS de precisión.</p></div></article><article class="guide-card"><div class="guide-card-header"><span class="guide-tag tag-scint">SEÑAL SATELITAL</span><h3>3. Centelleo Ionosférico (Scintillation)</h3></div><div class="guide-card-body"><p><strong>¿Qué es?</strong> Son fluctuaciones rápidas y caóticas en la amplitud y fase de las señales GNSS, causadas por irregularidades y burbujas de plasma a pequeña escala en la ionosfera. Es especialmente frecuente en regiones de anomalía ecuatorial (como el sur de Perú y norte de Chile) luego de la puesta del sol.</p><p><strong>¿Por qué es un DATO HISTÓRICO y no se proyecta a futuro?</strong> A diferencia de las tormentas geomagnéticas planetarias (Kp) detectadas por satélites solares, las burbujas de plasma ecuatoriales son fenómenos <em>locales, turbulentos y no lineales</em>. No existen actualmente modelos físicos que permitan predecirlas con precisión a días vista; por ello, GNSSPlanning reporta <strong>mediciones observadas (históricas)</strong> y proyecciones de muy corto plazo.</p><div class="guide-alert-box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4m0 4h.01"/></svg><div><strong>Impacto crítico en GNSS de Alta Precisión:</strong><span>Cuando se registran eventos con <strong>centelleo &gt; 1</strong>, es <strong>muy probable</strong> que equipos de alta precisión (RTK en perforadoras, palas mineras, drones y estaciones geodésicas de referencia) hayan experimentado pérdida de enganche (<em>loss of lock</em>), saltos de ciclo (<em>cycle slips</em>) o pérdida de solución fija (<em>Float</em> en lugar de <em>Fix</em>).</span></div></div></div></article></div><div class="welcome-footer"><label class="remember-checkbox"><input id="remember-welcome" type="checkbox"><span>No volver a mostrar esta ventana al iniciar</span></label><div class="welcome-actions"><span class="help-reminder-text">Podés consultar esta guía cuando quieras pulsando <strong>AYUDA</strong> en la barra superior.</span><button id="dismiss-welcome" class="primary-button" type="button">Entendido, ir al monitor</button></div></div></div></dialog>
+  <dialog id="welcome-dialog" class="welcome-dialog" aria-labelledby="welcome-title">
+    <div class="welcome-container">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">GUÍA DE OBSERVACIÓN · CLIMA ESPACIAL Y GNSS</p>
+          <h2 id="welcome-title">Bienvenido a GeoIonosfera</h2>
+        </div>
+        <button id="close-welcome" class="icon-button" type="button" title="Cerrar" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="dialog-note">Guía esencial para comprender los parámetros geomagnéticos e ionosféricos y su impacto en posicionamiento satelital de alta precisión.</p>
+      
+      <div class="guide-sections">
+        <article class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-tag tag-kp">GEOMAGNETISMO</span>
+            <h3>1. Índice Kp y Alertas NOAA (G1 a G5)</h3>
+          </div>
+          <div class="guide-card-body">
+            <p><strong>¿De dónde proviene?</strong> Procede del <em>NOAA Space Weather Prediction Center (SWPC)</em> en EE.UU. Mide perturbaciones globales en el campo magnético de la Tierra cada 3 horas, causadas por el viento solar o eyecciones de masa coronal (CME).</p>
+            <p><strong>¿Cómo interpretarlo?</strong> Valores de 0 a 4 indican calma geomagnética. Al alcanzar <strong>Kp ≥ 5</strong>, NOAA emite oficialmente una <strong>alerta de tormenta geomagnética (Escala G)</strong>.</p>
+            <div class="guide-scale-bar">
+              <div class="scale-box box-k0"><span>Kp &lt; 5</span><small>Calmo</small></div>
+              <div class="scale-box box-k1"><span>Kp = 5 (G1)</span><small>Menor</small></div>
+              <div class="scale-box box-k2"><span>Kp = 6 (G2)</span><small>Moderada</small></div>
+              <div class="scale-box box-k3"><span>Kp = 7 (G3)</span><small>Fuerte</small></div>
+              <div class="scale-box box-k4"><span>Kp = 8, 9- (G4)</span><small>Severa</small></div>
+              <div class="scale-box box-k5"><span>Kp = 9o (G5)</span><small>Extrema</small></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-tag tag-tec">IONOSFERA</span>
+            <h3>2. TEC (Total Electron Content - Contenido Total de Electrones)</h3>
+          </div>
+          <div class="guide-card-body">
+            <p><strong>¿Qué es?</strong> Es la cantidad total de electrones libres en una columna de 1 m² que atraviesa la ionosfera entre el satélite y el receptor en tierra. Representa la densidad del plasma ionizado.</p>
+            <p><strong>¿Cómo leerlo en la gráfica?</strong> Se representa con la <em>curva azul sólida</em>. Muestra un ciclo diurno natural: asciende de día debido a la radiación solar incidente (alcanzando su máximo hacia el mediodía o primeras horas de la tarde local) y decae drásticamente durante la noche.</p>
+            <p class="guide-highlight"><strong>Impacto GNSS:</strong> Niveles altos o variaciones abruptas de TEC provocan retrasos y refracción en la señal, aumentando el error ionosférico residual que deben corregir los receptores GNSS de precisión.</p>
+          </div>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-tag tag-scint">SEÑAL SATELITAL</span>
+            <h3>3. Centelleo Ionosférico (Scintillation)</h3>
+          </div>
+          <div class="guide-card-body">
+            <p><strong>¿Qué es?</strong> Son fluctuaciones rápidas y caóticas en la amplitud y fase de las señales GNSS, causadas por irregularidades y burbujas de plasma a pequeña escala en la ionosfera. Es especialmente frecuente en regiones de anomalía ecuatorial (como el sur de Perú y norte de Chile) luego de la puesta del sol.</p>
+            <p><strong>¿Por qué es un DATO HISTÓRICO y no se proyecta a futuro?</strong> A diferencia de las tormentas geomagnéticas planetarias (Kp) detectadas por satélites solares, las burbujas de plasma ecuatoriales son fenómenos <em>locales, turbulentos y no lineales</em>. No existen actualmente modelos físicos que permitan predecirlas con precisión a días vista; por ello, GNSSPlanning reporta <strong>mediciones observadas (históricas)</strong> y proyecciones de muy corto plazo.</p>
+            <div class="guide-alert-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4m0 4h.01"/></svg>
+              <div>
+                <strong>Impacto crítico en GNSS de Alta Precisión:</strong>
+                <span>Cuando se registran eventos con <strong>centelleo &gt; 1</strong>, es <strong>muy probable</strong> que equipos de alta precisión (RTK en perforadoras, palas mineras, drones y estaciones geodésicas de referencia) hayan experimentado pérdida de enganche (<em>loss of lock</em>), saltos de ciclo (<em>cycle slips</em>) o pérdida de solución fija (<em>Float</em> en lugar de <em>Fix</em>).</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="guide-card">
+          <div class="guide-card-header">
+            <span class="guide-tag tag-geo">GEODESIA Y MINERÍA</span>
+            <h3>4. Ubicación en mina: ¿Fondo de tajo vs. Base RTK en cresta?</h3>
+          </div>
+          <div class="guide-card-body">
+            <p><strong>¿Por qué una coordenada a nivel de operación es suficiente para el clima espacial?</strong> La ionosfera (capa F2) se localiza entre <strong>250 km y 450 km de altitud</strong> sobre la Tierra. Los modelos globales de propagación ionosférica (como los que calcula Trimble o IGS) resuelven la columna de electrones (TEC) sobre celdas geodésicas regionales de 1° a 2.5° (mallas de entre <strong>100 y 250 kilómetros</strong>).</p>
+            <p>Por lo tanto, que el receptor se encuentre en el <strong>fondo del pit</strong>, en la <strong>cresta del banco más alto</strong> o en la <strong>estación base RTK a 5 km en el campamento</strong>, para la física del plasma espacial equivale a observar prácticamente la misma columna de señal.</p>
+            <p class="guide-highlight"><strong>Personalización geodésica:</strong> Si deseás que el sistema refleje la coordenada exacta de tu antena de referencia o punto de control geodésico local, podés usar el botón <strong>MAPA / MINAS</strong>, hacer clic en tu vértice en el mapa o editar los decimales en el formulario.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="welcome-footer">
+        <label class="remember-checkbox">
+          <input id="remember-welcome" type="checkbox">
+          <span>No volver a mostrar esta ventana al iniciar</span>
+        </label>
+        <div class="welcome-actions">
+          <span class="help-reminder-text">Podés consultar esta guía cuando quieras pulsando <strong>AYUDA</strong> en la barra superior.</span>
+          <button id="dismiss-welcome" class="primary-button" type="button">Entendido, ir al monitor</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
