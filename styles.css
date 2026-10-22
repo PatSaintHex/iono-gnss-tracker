@@ -96,8 +96,8 @@ h2 { font-size: 27px; color: var(--deep); }
 .chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .legend-line { width: 21px; height: 0; border-top: 2px solid; }.tec-line { border-color: #197a8c; }.scint-line { border-color: #bf4b3c; border-top-style: dashed; }
 .legend-block { width: 14px; height: 11px; background: linear-gradient(90deg, #92d050 0%, #f6eb14 25%, #ffc800 45%, #ff9600 65%, #ff0000 85%, #c80000 100%); border: 1px solid #222; border-radius: 1px; }
-.chart-frame { position: relative; height: 330px; margin-top: 17px; overflow-x: auto; border: 1px solid var(--line); background: #fff; }
-#ionosphere-chart { display: block; width: 100%; min-width: 720px; height: 100%; }
+.chart-frame { position: relative; height: 360px; margin-top: 17px; overflow-x: auto; border: 1px solid var(--line); background: #fff; }
+#ionosphere-chart { display: block; width: 100%; min-width: 860px; height: 100%; }
 .chart-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
 
 /* Réplica exacta de la escala/tabla NOAA Geomagnetic Storms */
@@ -301,7 +301,7 @@ footer { min-height: 52px; display: flex; justify-content: space-between; gap: 1
   .summary-item strong { font-size: 22px; }
   .section-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
   .chart-legend { gap: 11px; }
-  .chart-frame { height: 270px; }
+  .chart-frame { height: 310px; }
   .noaa-scale-panel { overflow-x: auto; padding: 10px 8px; }
   .noaa-scale-table { min-width: 460px; }
   .noaa-scale-cell { font-size: 11px; min-height: 36px; }

@@ -681,7 +681,7 @@ function drawChart(report, rows) {
 
   const width = rect.width;
   const height = rect.height;
-  const margin = { top: 24, right: 64, bottom: 38, left: 46 };
+  const margin = { top: 24, right: 64, bottom: 58, left: 46 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
   const minTime = chartStart;
@@ -906,16 +906,70 @@ function drawChart(report, rows) {
     context.restore();
   }
 
-  // 6. Etiquetas de tiempo inferiores (hora local del sitio)
-  const labelCount = Math.min(6, Math.max(2, Math.floor(plotWidth / 110)));
-  context.textAlign = "center";
-  context.font = "10px DM Sans, sans-serif";
-  for (let index = 0; index <= labelCount; index += 1) {
-    const at = new Date(minTime + ((maxTime - minTime) * index) / labelCount);
-    const px = x(at);
-    context.fillStyle = "#748589";
-    context.fillText(`${dateLabel(isoDateInZone(at, report.site.timezone), report.site.timezone)} ${timeLabel(at, report.site.timezone)}`, px, height - 15);
+  // 6. Eje de tiempos inferior: intervalos de 2 horas en hora local del sitio
+  const tz = report.site.timezone;
+  const locale = currentLang === "en" ? "en-US" : "es-PE";
+
+  // Calcular densidad de píxeles para elegir el paso (2h si hay espacio, 4h si es muy compacto)
+  const msPerPixel = (maxTime - minTime) / plotWidth;
+  const pxForTwoHours = (2 * 3600 * 1000) / msPerPixel;
+  const hourStep = pxForTwoHours >= 15 ? 2 : (pxForTwoHours * 2 >= 15 ? 4 : 6);
+
+  // Alinear el primer tick a la hora local par correspondiente
+  let curTick = new Date(minTime);
+  const startParts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric", hourCycle: "h23" }).formatToParts(curTick);
+  const curLocalHour = Number(startParts.find((p) => p.type === "hour")?.value || 0);
+  const rem = curLocalHour % hourStep;
+  if (rem !== 0) {
+    curTick = new Date(curTick.getTime() + (hourStep - rem) * 3600 * 1000);
   }
+
+  context.save();
+  while (curTick.getTime() <= maxTime) {
+    const px = x(curTick);
+    if (px >= margin.left - 4 && px <= width - margin.right + 4) {
+      // Pequeña marca de tick sobre el eje inferior
+      context.beginPath();
+      context.strokeStyle = "#cbd5d0";
+      context.lineWidth = 1;
+      context.moveTo(px, margin.top + plotHeight);
+      context.lineTo(px, margin.top + plotHeight + 4);
+      context.stroke();
+
+      const dParts = new Intl.DateTimeFormat(locale, {
+        timeZone: tz,
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(curTick);
+
+      const day = dParts.find((p) => p.type === "day")?.value || "";
+      const month = dParts.find((p) => p.type === "month")?.value?.replace(".", "") || "";
+      const hour = dParts.find((p) => p.type === "hour")?.value || "";
+      const isMidnight = hour === "00" || hour === "0";
+      const label = `${day}-${month} ${hour}h`;
+
+      context.save();
+      context.translate(px, margin.top + plotHeight + 6);
+      context.rotate(-Math.PI / 3); // Inclinación suave de -60° para máxima legibilidad
+      context.textAlign = "right";
+      context.textBaseline = "middle";
+
+      if (isMidnight) {
+        context.font = "bold 9.5px Segoe UI, sans-serif";
+        context.fillStyle = "#197a8c"; // Resaltar cambio de día
+      } else {
+        context.font = "9px DM Sans, sans-serif";
+        context.fillStyle = "#637478";
+      }
+
+      context.fillText(label, 0, 0);
+      context.restore();
+    }
+    curTick = new Date(curTick.getTime() + hourStep * 3600 * 1000);
+  }
+  context.restore();
 }
 
 async function refreshReport() {
