@@ -65,6 +65,7 @@ const DEFAULT_SITES = [
   { id: "lindero", country: "AR", region: "Salta", name: "Mina Lindero", lat: -25.0933, lon: -67.7567, timezone: "America/Argentina/Salta" }
 ];
 const NOAA_URL = "https://services.swpc.noaa.gov/text/3-day-forecast.txt";
+const NOAA_OBSERVED_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json";
 const KP_INTERVALS = ["00-03UT", "03-06UT", "06-09UT", "09-12UT", "12-15UT", "15-18UT", "18-21UT", "21-00UT"];
 
 const elements = Object.fromEntries([
@@ -372,9 +373,61 @@ function parseNoaa(text) {
 }
 
 async function fetchNoaa() {
-  const response = await fetch(NOAA_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error(`NOAA respondió HTTP ${response.status}.`);
-  return parseNoaa(await response.text());
+  const [forecastResult, observedResult] = await Promise.allSettled([
+    fetch(NOAA_URL, { cache: "no-store" }),
+    fetch(NOAA_OBSERVED_URL, { cache: "no-store" })
+  ]);
+
+  if (forecastResult.status !== "fulfilled" || !forecastResult.value.ok) {
+    throw new Error("No se pudo obtener el pronóstico de NOAA.");
+  }
+
+  const forecastData = parseNoaa(await forecastResult.value.text());
+  const forecastDates = [...forecastData.dates];
+  const mergedMap = new Map();
+
+  // 1. Cargar pronóstico de 3 días de NOAA
+  for (const row of forecastData.rows) {
+    mergedMap.set(`${row.date}:${row.hour}`, row);
+  }
+
+  // 2. Sobreponer mediciones observadas reales de los últimos 7 días
+  if (observedResult.status === "fulfilled" && observedResult.value.ok) {
+    try {
+      const observedList = await observedResult.value.json();
+      if (Array.isArray(observedList)) {
+        for (const item of observedList) {
+          if (!item.time_tag || item.Kp === undefined) continue;
+          const date = item.time_tag.slice(0, 10);
+          const hour = Number(item.time_tag.slice(11, 13));
+          const rawKp = Number(item.Kp);
+          if (!Number.isFinite(rawKp)) continue;
+          const gLevel = rawKp >= 9 ? 5 : rawKp >= 8 ? 4 : rawKp >= 7 ? 3 : rawKp >= 6 ? 2 : rawKp >= 5 ? 1 : 0;
+          const time = new Date(`${item.time_tag}Z`);
+          mergedMap.set(`${date}:${hour}`, {
+            date,
+            hour,
+            kp: rawKp,
+            rawKp,
+            gLevel,
+            time
+          });
+        }
+      }
+    } catch {
+      /* si falla la API de observados, se conserva el pronóstico */
+    }
+  }
+
+  const allRows = Array.from(mergedMap.values()).sort((a, b) => a.time - b.time);
+  const allDates = Array.from(new Set(allRows.map((r) => r.date))).sort();
+
+  return {
+    dates: allDates,
+    forecastDates,
+    rows: allRows,
+    issued: forecastData.issued
+  };
 }
 
 async function fetchGnssDay(site, date) {
@@ -567,7 +620,7 @@ export function getKpScale(kp, gLevel = 0) {
 }
 
 function renderKp(report) {
-  const dates = report.noaa.dates.slice(0, 3);
+  const dates = report.noaa.forecastDates || report.noaa.dates.slice(-3);
   dates.forEach((date, index) => { elements[`kp-date-${index}`].textContent = dateLabel(date, "UTC"); });
   const lookup = new Map(report.noaa.rows.map((row) => [`${row.date}:${row.hour}`, row]));
   elements["kp-body"].innerHTML = KP_INTERVALS.map((interval, index) => {
@@ -604,10 +657,18 @@ function drawChart(report, rows) {
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.clearRect(0, 0, rect.width, rect.height);
 
-  const noaaDates = report.noaa?.dates || [];
-  const noaaRows = report.noaa?.rows || [];
-  const chartStart = noaaDates.length ? Date.parse(`${noaaDates[0]}T00:00:00Z`) : rows?.[0]?.time?.valueOf();
-  const chartEnd = noaaDates.length ? Date.parse(`${shiftDate(noaaDates.at(-1), 1)}T00:00:00Z`) : rows?.at(-1)?.time?.valueOf();
+  const chartStart = report.rangeStart ? Date.parse(`${report.rangeStart}T00:00:00Z`) : rows?.[0]?.time?.valueOf();
+  const chartEnd = report.rangeEnd ? Date.parse(`${shiftDate(report.rangeEnd, 1)}T00:00:00Z`) : rows?.at(-1)?.time?.valueOf();
+
+  const noaaRows = (report.noaa?.rows || []).filter((r) => r.time && r.time.valueOf() >= chartStart && r.time.valueOf() < chartEnd);
+  const noaaDates = [];
+  if (report.rangeStart && report.rangeEnd) {
+    for (let d = report.rangeStart; d <= report.rangeEnd; d = shiftDate(d, 1)) {
+      noaaDates.push(d);
+    }
+  } else {
+    noaaDates.push(...(report.noaa?.dates || []));
+  }
 
   const valid = (rows || []).filter((row) => row && row.time
     && row.time.valueOf() >= chartStart && row.time.valueOf() <= chartEnd
@@ -864,9 +925,12 @@ async function refreshReport() {
   clearNotice();
   const site = { ...getSelectedSite() };
   const today = isoDateInZone(new Date(), site.timezone);
-  const rangeStart = shiftDate(today, -1);
+  const rangeStart = shiftDate(today, -2);
   const rangeEnd = shiftDate(today, 1);
-  const dates = [rangeStart, today, rangeEnd];
+  const dates = [];
+  for (let d = rangeStart; d <= rangeEnd; d = shiftDate(d, 1)) {
+    dates.push(d);
+  }
   const id = `${site.id}:${rangeStart}:${rangeEnd}`;
   const cached = await listReports(site.id, 1).catch(() => []);
   if (cached.length) renderReport(cached[0], true);
